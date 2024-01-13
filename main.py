@@ -10,33 +10,45 @@ Purpose:
       - requirements.txt
 
 Usage:
-    main.py [--hello]
+    main.py [-v | -q ] [--hello]
 
 Options:
-    --hello        print "Hello World!"
+    -v              verbose, increase verbosity to log on DEBUG level (default is WARNING)
+    -q              quiet, decrease verbosity to log on ERROR level (default is WARNING)
+    --hello         log "Hello World!" (test case)
 """
 from docopt import docopt
-from pathlib import Path
-import os
-import sys
 
 from src.utils.cli_input_args import CliInputArgs
-
-# global vars #
-ROOT: Path = Path(os.path.dirname(sys.executable)) if getattr(sys, 'frozen', False) else Path(__file__).resolve().parent
-"""path of root dir of repo"""
+from src.utils.logger import Logger
 
 
 def main():
     """
     - get and process CLI input args
-    - and start program
+    - configure logging
+    - start program
+    - on program exit, log possible exceptions
     """
-    # get CLI input args #
+    # process CLI input args #
     CliInputArgs.set_cli_input_args(docopt(__doc__))
+    print(CliInputArgs.verbose)
+    print(CliInputArgs.quiet)
 
+    # configure logging #
+    root_logger = Logger()
+    root_logger.add_stream_handler()
+    root_logger.add_file_handler()
+    import logging
+    logging.info("info")
+    logging.warning("warning")
+    logging.error("error")
+    
+    # enter program #
     print(docopt(__doc__))
     print("Hello World!")
+
+    # on exit, log exceptions #
 
 
 if __name__=="__main__":
