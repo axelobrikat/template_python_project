@@ -7,14 +7,41 @@ from src.vars.paths import ROOT
 
 class IntlLogger():
     """internal class for configuring logging
-    TODO: check that IntlLogger instances must have unique self.name
     """
+    logger_names = []
+    """Saves unique names of already configured internal logger instances."""
+
+    def __new__(
+            cls,
+            logger_name: str = "root",
+            format: str = '',
+        ):
+        """check that created InstLogger instances have unique names
+        - exit program, if InstLogger instance with same name already exists
+
+        Args:
+            logger_name (str, optional): logger name. Defaults to "root".
+            format (str, optional): logging format (not used in this method). Defaults to ''.
+
+        Returns:
+            Self: instance of class, if no exception to exit program occured
+        """
+        if logger_name in cls.logger_names:
+            logging.error(
+                f"{cls.__name__} '{logger_name}' has already been instantiated and configured before."
+                f" {cls.__name__} instances must have unique names."
+                f" Access the existing logger of {cls.__name__} via `logging.getLogger(\"{logger_name}\")`."
+            )
+            import sys; sys.exit("Terminate program")
+        return super().__new__(cls)
+
     def __init__(
             self,
             logger_name: str = "root",
-            format: str = '%(asctime)s [%(levelname)-8s] %(name)s: %(message)s'
+            format: str = '%(asctime)s [%(levelname)-8s] %(name)s: %(message)s',
         ) -> None:
         self.name: str = logger_name
+        IntlLogger.logger_names.append(self.name)
         self.logger: logging.Logger = logging.getLogger(self.name)
         self.verbose: bool = False
         self.quiet: bool = False
