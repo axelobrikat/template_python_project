@@ -19,21 +19,6 @@ def intl_logger():
     return IntlLogger(logger_name="test-logger")
 
 @pytest.fixture
-def mock_CliInputArgs(mocker: MockerFixture) -> MagicMock:
-    """mocks logging.CliInputArgs
-
-    Args:
-        mocker (MockerFixture): pytest MockerFixture
-
-    Returns:
-        MagicMock: mocked CliInputArgs class
-    """
-    return mocker.patch.object(
-        cli_input_args,
-        "CliInputArgs",
-    )
-
-@pytest.fixture
 def mock_configure_and_add_handler(mocker: MockerFixture) -> MagicMock:
     """mocks IntlLogger.configure_and_add_handler
 
@@ -176,6 +161,8 @@ def test_configure_and_add_handler(mocker: MockerFixture):
         mocker (MockerFixture): pytest MockerFixture
     """
     # Arrange
+    intl_logger = IntlLogger()
+    intl_logger.logger = MagicMock()
     mock_handler = MagicMock()
     mock_set_verbosity: MagicMock = mocker.patch.object(
         IntlLogger,
@@ -185,8 +172,6 @@ def test_configure_and_add_handler(mocker: MockerFixture):
         logging,
         "Formatter",
     )
-    intl_logger = IntlLogger()
-    intl_logger.logger = MagicMock()
 
     # Act
     intl_logger.configure_and_add_handler(mock_handler)

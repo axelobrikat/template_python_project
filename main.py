@@ -32,24 +32,23 @@ def main():
     """
     # process CLI input args #
     CliInputArgs.set_cli_input_args(docopt(__doc__))
-    print(CliInputArgs.verbose)
-    print(CliInputArgs.quiet)
 
     # configure logging #
     root_logger = IntlLogger()
+    root_logger.set_verbosity(root_logger.logger)
     root_logger.add_stream_handler()
     root_logger.add_file_handler()
-    import logging
-    logging.info("info")
-    logging.warning("warning")
-    logging.error("error")
     
     # enter program #
-    print(docopt(__doc__))
-    print("Hello World!")
+    import logging
+    logging.debug("Hello World!")
+    logging.info("Hello World!")
+    logging.warning("Hello World!")
+    logging.error("Hello World!")
+    logging.critical("Hello World!")
 
     # on exit, log exceptions #
 
 
 if __name__=="__main__":
-    main()
+    main() # pragma: no cover

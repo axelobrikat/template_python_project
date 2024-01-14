@@ -7,11 +7,12 @@ from src.vars.paths import ROOT
 
 class IntlLogger():
     """internal class for configuring logging
+    TODO: check that IntlLogger instances must have unique self.name
     """
     def __init__(
             self,
-            logger_name: str = "",
-            format: str = '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+            logger_name: str = "root",
+            format: str = '%(asctime)s [%(levelname)-8s] %(name)s: %(message)s'
         ) -> None:
         self.name: str = logger_name
         self.logger: logging.Logger = logging.getLogger(self.name)
@@ -22,16 +23,16 @@ class IntlLogger():
     def __str__(self) -> str:
         return f"This is the internal IntlLogger: '{self.name}'."
     
-    def set_verbosity(self, handler: logging.Handler):
+    def set_verbosity(self, manager: logging.Handler | logging.Logger):
         """set verbosity of handler dependant on cli input args -v and -q
         - if both -v and -q are false, then default level is WARNING
         """
         if CliInputArgs.verbose:
-            handler.setLevel(logging.DEBUG)
+            manager.setLevel(logging.DEBUG)
         elif CliInputArgs.quiet:
-            handler.setLevel(logging.ERROR)
+            manager.setLevel(logging.ERROR)
         else:
-            handler.setLevel(logging.WARNING)
+            manager.setLevel(logging.WARNING)
 
     def configure_and_add_handler(self, handler: logging.Handler):
         """configure and add a new handler to self.logger
