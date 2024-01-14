@@ -40,13 +40,9 @@ def main():
     root_logger.add_stream_handler()
     root_logger.add_file_handler()
     
-    # enter program #
-    import logging
-    logging.debug("Hello World!")
-    logging.info("Hello World!")
-    logging.warning("Hello World!")
-    logging.error("Hello World!")
-    logging.critical("Hello World!")
+    # start program #
+    from src.hello_world import hello
+    hello()
 
     # on exit, log catched exceptions as roundup #
     exc.program_end()
