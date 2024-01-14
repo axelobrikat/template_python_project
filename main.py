@@ -3,7 +3,7 @@ Purpose:
     - Python Project Template which includes
       - project structure
       - test stucture using pytest and coverage
-      - configured logging, arg parsing and exception handling
+      - configured logging, cli input args parsing and exception handling
       - .gitignore
       - LICENSE
       - README.md
