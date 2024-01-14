@@ -20,7 +20,7 @@ Options:
 from docopt import docopt
 
 from src.utils.cli_input_args import CliInputArgs
-from src.utils.logger import Logger
+from src.utils.intl_logger import IntlLogger
 
 
 def main():
@@ -36,7 +36,7 @@ def main():
     print(CliInputArgs.quiet)
 
     # configure logging #
-    root_logger = Logger()
+    root_logger = IntlLogger()
     root_logger.add_stream_handler()
     root_logger.add_file_handler()
     import logging

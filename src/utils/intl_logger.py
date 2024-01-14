@@ -5,7 +5,7 @@ from src.utils.cli_input_args import CliInputArgs
 from src.vars.paths import ROOT
 
 
-class Logger():
+class IntlLogger():
     """internal class for configuring logging
     """
     def __init__(
@@ -20,7 +20,7 @@ class Logger():
         self.format: str =  format
 
     def __str__(self) -> str:
-        return f"This is the internal logger: '{self.name}'."
+        return f"This is the internal IntlLogger: '{self.name}'."
     
     def set_verbosity(self, handler: logging.Handler):
         """set verbosity of handler dependant on cli input args -v and -q
