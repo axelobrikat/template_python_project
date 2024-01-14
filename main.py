@@ -15,7 +15,7 @@ Usage:
 Options:
     -v              verbose, increase verbosity to log on DEBUG level (default is WARNING)
     -q              quiet, decrease verbosity to log on ERROR level (default is WARNING)
-    --hello         log "Hello World!" (test case)
+    --hello         [TEST CASE], log "Hello World!"
 """
 from docopt import docopt
 
