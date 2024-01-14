@@ -21,6 +21,7 @@ from docopt import docopt
 
 from src.utils.cli_input_args import CliInputArgs
 from src.utils.intl_logger import IntlLogger
+from src.utils import exception_handling as exc
 
 
 def main():
@@ -47,7 +48,8 @@ def main():
     logging.error("Hello World!")
     logging.critical("Hello World!")
 
-    # on exit, log exceptions #
+    # on exit, log catched exceptions as roundup #
+    exc.program_end()
 
 
 if __name__=="__main__":
