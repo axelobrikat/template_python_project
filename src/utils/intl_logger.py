@@ -30,6 +30,8 @@ class IntlLogger():
             handler.setLevel(logging.DEBUG)
         elif CliInputArgs.quiet:
             handler.setLevel(logging.ERROR)
+        else:
+            handler.setLevel(logging.WARNING)
 
     def configure_and_add_handler(self, handler: logging.Handler):
         """configure and add a new handler to self.logger

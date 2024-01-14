@@ -1,10 +1,11 @@
 import logging
-import os
-from pathlib import Path
 import pytest
-from pytest import LogCaptureFixture
+from pytest_mock import MockerFixture
+from unittest.mock import MagicMock
+from py import path
 
 from src.utils.intl_logger import IntlLogger
+from src.utils import cli_input_args
 from src.utils.cli_input_args import CliInputArgs
 
 
@@ -17,15 +18,60 @@ def intl_logger():
     """
     return IntlLogger(logger_name="test-logger")
 
-
 @pytest.fixture
-def CliInputArgs():
-    """return class CliInputArgs
+def mock_CliInputArgs(mocker: MockerFixture) -> MagicMock:
+    """mocks logging.CliInputArgs
+
+    Args:
+        mocker (MockerFixture): pytest MockerFixture
 
     Returns:
-        CliInputArgs: class
+        MagicMock: mocked CliInputArgs class
     """
-    return CliInputArgs
+    return mocker.patch.object(
+        cli_input_args,
+        "CliInputArgs",
+    )
+
+@pytest.fixture
+def mock_configure_and_add_handler(mocker: MockerFixture) -> MagicMock:
+    """mocks IntlLogger.configure_and_add_handler
+
+    Args:
+        mocker (MockerFixture): pytest MockerFixture
+
+    Returns:
+        MagicMock: mocked method
+    """
+    return mocker.patch.object(
+        IntlLogger,
+        "configure_and_add_handler",
+    )
+
+@pytest.fixture
+def mock_stream_handler(mocker: MockerFixture) -> MagicMock:
+    """mocks logging.StreamHandler
+
+    Args:
+        mocker (MockerFixture): pytest MockerFixture
+
+    Returns:
+        MagicMock: mocked StreamHandler class
+    """
+    return mocker.patch.object(
+        logging,
+        "StreamHandler",
+    )
+
+
+
+def _reset_CliInputArgs():
+    """reset CliInputArgs class variables to default values
+    """
+    CliInputArgs.verbose = False
+    CliInputArgs.quiet = False
+    CliInputArgs.hello = False
+
 
 
 def test__str__(intl_logger: IntlLogger):
@@ -34,124 +80,118 @@ def test__str__(intl_logger: IntlLogger):
     Args:
         intl_logger (IntlLogger): internal logger
     """
-    assert f"This is the internal logger: 'test-logger'." in intl_logger.__str__()
-
-import logging
-import pytest
-from unittest.mock import MagicMock, patch
-from pathlib import Path
-from src.utils.cli_input_args import CliInputArgs
-from src.vars.paths import ROOT
-from src.utils.intl_logger import IntlLogger
-from py import path
+    assert f"This is the internal IntlLogger: 'test-logger'." in intl_logger.__str__()
 
 
 
-@patch.object(IntlLogger, 'configure_and_add_handler')
-@patch.object(logging, 'StreamHandler')
-def test_add_stream_handler(mock_stream_handler, mock_configure_handler, caplog):
-    """Test adding a StreamHandler.
+def test_add_stream_handler(mock_configure_and_add_handler: MagicMock, mock_stream_handler: MagicMock):
+    """test adding a stream handler
 
     Args:
-        mock_stream_handler (MagicMock): Mock for the StreamHandler class.
-        mock_configure_handler (MagicMock): Mock for the configure_and_add_handler method.
-        caplog (pytest.fixture): Fixture to capture log messages during the test.
+        mock_configure_and_add_handler (MagicMock): mocked method
+        mock_stream_handler (MagicMock): mocked class
     """
     # Arrange
-    logger = IntlLogger()
-    mock_configure_and_add_handler: MagicMock = patch.object(IntlLogger, )
+    intl_logger = IntlLogger()
 
     # Act
-    logger.add_stream_handler()
+    intl_logger.add_stream_handler()
 
     # Assert
-    mock_configure_handler.assert_called_once_with(mock_stream_handler())
+    mock_configure_and_add_handler.assert_called_once_with(mock_stream_handler())
 
-@patch.object(IntlLogger, 'configure_and_add_handler')
-# @patch.object(logging, 'FileHandler')
-def test_add_file_handler(mock_configure_handler, caplog, tmpdir: path.LocalPath):
-    """Test adding a FileHandler.
+
+def test_add_file_handler(mock_configure_and_add_handler: MagicMock, tmpdir: path.LocalPath):
+    """test adding a file handler
 
     Args:
-        mock_file_handler (MagicMock): Mock for the FileHandler class.
-        mock_configure_handler (MagicMock): Mock for the configure_and_add_handler method.
-        caplog (pytest.fixture): Fixture to capture log messages during the test.
-        tmpdir (pytest.fixture): Fixture providing a temporary directory.
+        mock_configure_and_add_handler (MagicMock): mocked method
+        tmpdir (path.LocalPath): pytest fixture tmpdir
     """
     # Arrange
-    logger = IntlLogger()
-    print()
-    print()
-    print()
-    print(tmpdir)
-    print(type(tmpdir))
-    print()
-    print()
-    print()
-
+    intl_logger = IntlLogger()
     log_dir = tmpdir.mkdir("log")
-    log_file_path = log_dir.join("app.log")
-    print(log_file_path)
+    test_path = log_dir.join("test.log")
 
     # Act
-    logger.add_file_handler(file=log_file_path)
-    print(log_file_path.exists())
+    intl_logger.add_file_handler(file=test_path)
 
     # Assert
-    # mock_configure_handler.assert_called_once_with(mock_file_handler(str(log_file_path)))
-    assert log_file_path.exists()
+    mock_configure_and_add_handler.assert_called_once()
+    assert test_path.exists()
 
-@patch.object(logging, 'StreamHandler')
-def test_set_verbosity_verbose(mock_stream_handler):
+
+def test_set_verbosity_verbose():
     """Test setting verbosity to verbose.
-
-    Args:
-        mock_stream_handler (MagicMock): Mock for the StreamHandler class.
     """
     # Arrange
-    handler = mock_stream_handler()
     CliInputArgs.verbose = True
-    logger = IntlLogger()
+    handler = logging.StreamHandler()
+    intl_logger = IntlLogger()
 
     # Act
-    logger.set_verbosity(handler)
+    intl_logger.set_verbosity(handler)
 
     # Assert
     assert handler.level == logging.DEBUG
 
-@patch.object(logging, 'StreamHandler')
-def test_set_verbosity_quiet(mock_stream_handler):
-    """Test setting verbosity to quiet.
+    # TearDown #
+    _reset_CliInputArgs()
 
-    Args:
-        mock_stream_handler (MagicMock): Mock for the StreamHandler class.
+def test_set_verbosity_quiet():
+    """Test setting verbosity to quiet.
     """
     # Arrange
-    handler = mock_stream_handler()
     CliInputArgs.quiet = True
-    logger = IntlLogger()
+    handler = logging.StreamHandler()
+    intl_logger = IntlLogger()
 
     # Act
-    logger.set_verbosity(handler)
+    intl_logger.set_verbosity(handler)
 
     # Assert
     assert handler.level == logging.ERROR
 
-@patch.object(logging, 'StreamHandler')
-def test_set_verbosity_default(mock_stream_handler):
-    """Test setting verbosity to default.
+    # TearDown #
+    _reset_CliInputArgs()
 
-    Args:
-        mock_stream_handler (MagicMock): Mock for the StreamHandler class.
+def test_set_verbosity_default():
+    """Test setting verbosity to default.
     """
     # Arrange
-    handler = mock_stream_handler()
-    CliInputArgs.verbose = False
-    CliInputArgs.quiet = False
-    logger = IntlLogger()
+    handler = logging.StreamHandler()
+    intl_logger = IntlLogger()
 
     # Act
-    logger.set_verbosity(handler)
+    intl_logger.set_verbosity(handler)
 
     # Assert
     assert handler.level == logging.WARNING
+
+
+def test_configure_and_add_handler(mocker: MockerFixture):
+    """Test configure_and_add_handler with verbosity set to verbose.
+
+    Args:
+        mocker (MockerFixture): pytest MockerFixture
+    """
+    # Arrange
+    mock_handler = MagicMock()
+    mock_set_verbosity: MagicMock = mocker.patch.object(
+        IntlLogger,
+        "set_verbosity",
+    )
+    mock_formatter: MagicMock = mocker.patch.object(
+        logging,
+        "Formatter",
+    )
+    intl_logger = IntlLogger()
+    intl_logger.logger = MagicMock()
+
+    # Act
+    intl_logger.configure_and_add_handler(mock_handler)
+
+    # Assert
+    mock_set_verbosity.assert_called_once_with(mock_handler)
+    mock_handler.setFormatter.assert_called_once_with(mock_formatter(intl_logger.format))
+    intl_logger.logger.addHandler.assert_called_once_with(mock_handler)
