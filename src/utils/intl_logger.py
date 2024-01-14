@@ -3,6 +3,7 @@ from pathlib import Path
 
 from src.utils.cli_input_args import CliInputArgs
 from src.vars.paths import ROOT
+from src.utils import exception_handling as exc
 
 
 class IntlLogger():
@@ -27,12 +28,11 @@ class IntlLogger():
             Self: instance of class, if no exception to exit program occured
         """
         if logger_name in cls.logger_names:
-            logging.error(
+            exc.raise_exception(
                 f"{cls.__name__} '{logger_name}' has already been instantiated and configured before."
                 f" {cls.__name__} instances must have unique names."
                 f" Access the existing logger of {cls.__name__} via `logging.getLogger(\"{logger_name}\")`."
             )
-            import sys; sys.exit("Terminate program")
         return super().__new__(cls)
 
     def __init__(

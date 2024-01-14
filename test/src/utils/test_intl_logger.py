@@ -18,6 +18,13 @@ def intl_logger():
     """
     return IntlLogger(logger_name="test-logger")
 
+@pytest.fixture(autouse=True)
+def clear_logger_names():
+    """clear list of IntlLogger instances to prevent exception to be thrown
+    """
+    IntlLogger.logger_names = []
+
+
 @pytest.fixture
 def mock_configure_and_add_handler(mocker: MockerFixture) -> MagicMock:
     """mocks IntlLogger.configure_and_add_handler
@@ -58,6 +65,19 @@ def _reset_CliInputArgs():
     CliInputArgs.hello = False
 
 
+
+def test__new__(intl_logger: IntlLogger, caplog: pytest.LogCaptureFixture):
+    """test __new__ method
+    - IntlLogger with duplicate name gets instantiated and exception occurs
+
+    Args:
+        intl_logger (IntlLogger): internal logger
+    """
+    with pytest.raises(Exception):
+        _ = IntlLogger(intl_logger.name)
+    assert "has already been instantiated and configured" in caplog.text
+    assert "instances must have unique names" in caplog.text
+    assert "Access the existing logger of" in caplog.text
 
 def test__str__(intl_logger: IntlLogger):
     """test __str__ method
