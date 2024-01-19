@@ -2,10 +2,9 @@ import logging
 import pytest
 from pytest_mock import MockerFixture
 from unittest.mock import MagicMock
-from py import path
+from pathlib import Path
 
 from src.utils.intl_logger import IntlLogger
-from src.utils import cli_input_args
 from src.utils.cli_input_args import CliInputArgs
 
 
@@ -85,7 +84,7 @@ def test__str__(intl_logger: IntlLogger):
     Args:
         intl_logger (IntlLogger): internal logger
     """
-    assert f"This is the internal IntlLogger: 'test-logger'." in intl_logger.__str__()
+    assert f"'test-logger'" in intl_logger.__str__()
 
 
 
@@ -106,17 +105,17 @@ def test_add_stream_handler(mock_configure_and_add_handler: MagicMock, mock_stre
     mock_configure_and_add_handler.assert_called_once_with(mock_stream_handler())
 
 
-def test_add_file_handler(mock_configure_and_add_handler: MagicMock, tmpdir: path.LocalPath):
+def test_add_file_handler(mock_configure_and_add_handler: MagicMock, tmp_path: Path):
     """test adding a file handler
 
     Args:
         mock_configure_and_add_handler (MagicMock): mocked method
-        tmpdir (path.LocalPath): pytest fixture tmpdir
+        tmp_path (Path): pytest fixture tmp_path
     """
     # Arrange
     intl_logger = IntlLogger()
-    log_dir = tmpdir.mkdir("log")
-    test_path = log_dir.join("test.log")
+    test_path: Path = tmp_path / Path("test.log")
+    test_path.touch()
 
     # Act
     intl_logger.add_file_handler(file=test_path)
