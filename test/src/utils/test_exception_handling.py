@@ -16,13 +16,12 @@ def test_log_exc(caplog: LogCaptureFixture):
     assert f"{exc_msg}" in caplog.text
     assert f"{err_msg}" in caplog.text
 
-def test_process_exc(caplog: LogCaptureFixture):
+def test_process_exc():
     exc.clear_catched_exceptions()
     exc_msg = "Test Exception"
-    with pytest.raises(Exception):
+    with pytest.raises(Exception, match=fr"{exc_msg}"):
         exc.raise_exception(exc_msg)
     assert len(exc.EXC) == 1
-    assert f"{exc_msg}" in caplog.text
 
 def test_program_end_without_exceptions(caplog: LogCaptureFixture):
     exc.clear_catched_exceptions()

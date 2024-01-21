@@ -52,10 +52,10 @@ def raise_exception(exc_msg: str):
         Exception: raise Exception, log error that occured and exit program
     """
     try:
-        raise Exception
+        raise Exception(exc_msg)
     except Exception:
         process_exc(f"EXCEPTION raised: {exc_msg}")
-        raise # for process temrination, raise last exception again without catching
+        raise # for process termination, raise last exception again without catching
     
 def program_end():
     """when program exits, output all catched exceptions as roundup
