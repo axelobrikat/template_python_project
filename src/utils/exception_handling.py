@@ -1,6 +1,8 @@
 import sys
 import logging
 
+from src.vars.pretty_print import SEPARATOR
+
 
 EXC: list[list] = []
 """"stores all occured exception messages [[exc_msg: str, exc_info: tuple[type[BaseException], BaseException, TracebackType]]]"""
@@ -21,11 +23,11 @@ def log_exc(exc_msg: str, exc_info):
     """
     logging.exception(
         f"\n"
-        f"=========================\n"
-        f"=========================\n"
+        f"{SEPARATOR}\n"
+        f"{SEPARATOR}\n"
         f"{exc_msg}\n"
-        f"=========================\n"
-        f"=========================",
+        f"{SEPARATOR}\n"
+        f"{SEPARATOR}",
         exc_info=exc_info
     )
 
@@ -61,8 +63,8 @@ def program_end():
     """when program exits, output all catched exceptions as roundup
     """        
     logging.warning((
-        f"\n========================================"
-        f"\n========================================"
+        f"\n{SEPARATOR}"
+        f"\n{SEPARATOR}"
         f"\n\nProgram ends.."
     ))
     if EXC:
