@@ -18,10 +18,12 @@ Options:
     --hello         [TEST CASE], log "Hello World!"
 """
 from docopt import docopt
+import logging
 
 from src.utils.cli_input_args import CliInputArgs
 from src.utils.intl_logger import IntlLogger
 from src.utils import exception_handling as exc
+from src.vars.pretty_print import SEPARATOR
 
 
 def main():
@@ -32,13 +34,28 @@ def main():
     - on program exit, log possible exceptions
     """
     # process CLI input args #
-    CliInputArgs.set_cli_input_args(docopt(__doc__))
+    docopt_args: dict = docopt(__doc__)
+    CliInputArgs.set_cli_input_args(
+        verbose=docopt_args["-v"],
+        quiet=docopt_args["-q"],
+        hello=docopt_args["--hello"],
+    )
 
     # configure logging #
     root_logger = IntlLogger()
     root_logger.set_verbosity(root_logger.logger)
     root_logger.add_stream_handler()
     root_logger.add_file_handler()
+
+    # rotate logs from previous program execution #
+    root_logger.rotating_file_handler.doRollover()
+    logging.debug((
+        f"Program execution starts.\n"
+        f"Logging and Input Arguments configured successfully.\n"
+        f"Log rotation of log files '{root_logger.log_file_path}.<x>' performed succesfully.\n"
+        f"{SEPARATOR}\n"
+        f"{SEPARATOR}\n\n"
+    ))
     
     # start program #
     from src.hello_world import hello

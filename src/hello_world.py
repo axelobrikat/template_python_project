@@ -1,4 +1,3 @@
-import pytest
 import logging
 
 from src.utils.cli_input_args import CliInputArgs as Args

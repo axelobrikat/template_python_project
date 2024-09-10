@@ -16,7 +16,7 @@ def test_main(mocker: MockerFixture):
         mocker (MockerFixture): pytest mocker fixture
     """
     # Arrange #
-    mocked__doc__ = main.__doc__
+    mocked__doc__: str = main.__doc__
     sys.argv = r'.\main.py'.split(" ")
     mock_set_cli_input_args: MagicMock = mocker.patch.object(
         CliInputArgs,
@@ -38,6 +38,7 @@ def test_main(mocker: MockerFixture):
         exc,
         "program_end",
     )
+    # TODO: test main for doRollover() with tmp_path from pytest
 
     # Act #
     main.main()

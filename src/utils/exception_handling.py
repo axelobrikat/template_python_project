@@ -5,7 +5,7 @@ from src.vars.pretty_print import SEPARATOR
 
 
 EXC: list[list] = []
-""""stores all occured exception messages [[exc_msg: str, exc_info: tuple[type[BaseException], BaseException, TracebackType]]]"""
+"""stores all occured exception messages [[exc_msg: str, exc_info: tuple[type[BaseException], BaseException, TracebackType]]]"""
 
 
 def clear_catched_exceptions():

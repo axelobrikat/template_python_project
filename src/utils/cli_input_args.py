@@ -6,12 +6,19 @@ class CliInputArgs():
     hello: bool = False
 
     @classmethod
-    def set_cli_input_args(cls, args: dict[str, str | bool | None ]):
+    def set_cli_input_args(
+        cls,
+        verbose: bool = False,
+        quiet: bool = False,
+        hello: bool = False,
+    ):
         """set class vars
 
         Args:
-            args (dict[str, str | bool | None ]): docopt cli input args
-        """
-        cls.verbose = args["-v"]
-        cls.quiet = args["-q"]
-        cls.hello = args["--hello"]
+            verbose (bool, optional): run program with verbose output. Defaults to False.
+            quiet (bool, optional): run program with quiet output. Defaults to False.
+            hello (bool, optional): hello-world. Defaults to False.
+        """        
+        cls.verbose = verbose
+        cls.quiet = quiet
+        cls.hello = hello

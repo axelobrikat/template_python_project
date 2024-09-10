@@ -1,4 +1,5 @@
 import logging
+import logging.handlers
 from pathlib import Path
 
 from src.utils.cli_input_args import CliInputArgs
@@ -12,12 +13,23 @@ class IntlLogger():
     logger_names = []
     """Saves unique names of already configured internal logger instances."""
 
+    log_file_path: Path = ROOT / "log" / "app.log"
+    """Path to logging file"""
+
+    rotating_file_handler: logging.handlers.RotatingFileHandler = logging.handlers.RotatingFileHandler(
+            log_file_path,
+            mode="a",
+            maxBytes=10*1024,
+            backupCount=5,
+    )
+    """RotatingFileHanlder that handles all logs to file"""
+
     def __new__(
             cls,
             logger_name: str = "root",
             format: str = '',
         ):
-        """check that created InstLogger instances have unique names
+        """check that created IntlLogger instances have unique names
         - exit program, if InstLogger instance with same name already exists
 
         Args:
@@ -35,33 +47,52 @@ class IntlLogger():
             )
         return super().__new__(cls)
 
+
     def __init__(
             self,
             logger_name: str = "root",
             format: str = '%(asctime)s [%(levelname)-8s] %(name)s: %(message)s',
         ) -> None:
+        """init
+
+        Args:
+            logger_name (str, optional): name of logger. Defaults to "root".
+            format (str, optional): logging format. Defaults to '%(asctime)s [%(levelname)-8s] %(name)s: %(message)s'.
+        """
         self.name: str = logger_name
         IntlLogger.logger_names.append(self.name)
         self.logger: logging.Logger = logging.getLogger(self.name)
-        self.verbose: bool = False
-        self.quiet: bool = False
         self.format: str =  format
+
 
     def __str__(self) -> str:
         return f"This is the internal IntlLogger: '{self.name}'."
     
-    def set_verbosity(self, manager: logging.Handler | logging.Logger):
-        """set verbosity of handler dependant on cli input args -v and -q
-        - if both -v and -q are false, then default level is WARNING
-        """
-        if CliInputArgs.verbose:
-            manager.setLevel(logging.DEBUG)
-        elif CliInputArgs.quiet:
-            manager.setLevel(logging.ERROR)
-        else:
-            manager.setLevel(logging.WARNING)
 
-    def configure_and_add_handler(self, handler: logging.Handler):
+    def set_verbosity(self, manager: logging.Handler | logging.Logger):
+        """set verbosity of handler
+        - for 'root' logger, it is dependant on cli input args -v (DEBUG) and -q (ERROR)
+        - default level is WARNING for all loggers
+        - at the moment, other loggers than "root" are not configurable
+        TODO: 
+          - must be more general
+          - only use CliInputArgs when "root" logger is meant
+          - otherwise, provide func params
+        """
+        if self.name == "root":
+            if CliInputArgs.verbose:
+                manager.setLevel(logging.DEBUG)
+                return
+            elif CliInputArgs.quiet:
+                manager.setLevel(logging.ERROR)
+                return
+
+        # set default level -> WARNING #
+        # at the moment, other loggers than "root" are not configurable #
+        manager.setLevel(logging.WARNING)
+
+
+    def _configure_and_add_handler(self, handler: logging.Handler):
         """configure and add a new handler to self.logger
 
         Args:
@@ -76,16 +107,14 @@ class IntlLogger():
         # add handler to logger #
         self.logger.addHandler(handler)
 
+
     def add_stream_handler(self):
         """add a StreamHandler for logging to console
         """ 
-        self.configure_and_add_handler(logging.StreamHandler())
+        self._configure_and_add_handler(logging.StreamHandler())
 
-    def add_file_handler(self, file: Path = ROOT / "log" / "app.log"):
-        """add a FileHandler for logging to a file
-        - NOTE, when app is executed, old logs get deleted
 
-        Args:
-            file (Path, optional): path to log file. Defaults to ROOT/"log"/"app.log".
+    def add_file_handler(self):
+        """add a log-rotating FileHandler for logging to a file
         """
-        self.configure_and_add_handler(logging.FileHandler(str(file), mode="w"))
+        self._configure_and_add_handler(IntlLogger.rotating_file_handler)

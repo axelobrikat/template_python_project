@@ -1,54 +1,59 @@
 import pytest
+from collections.abc import Callable
 
 from src.utils.cli_input_args import CliInputArgs
 
 
-@pytest.fixture
-def default_args() -> dict:
-    """return default cli input args after from docopt
+@pytest.fixture(autouse=True)
+def tearDown():
+    """yield test
+    - tearDown and reset class args of class CliInputArgs
 
-    Returns:
-        dict: default cli input args
+    Yields:
+        CliInputArgs: class CliInputArgs
     """
-    return {
-        '-v': False,
-        '-q': False,
-        '--hello': False,
-    }
+    yield
+
+    # tearDown: set class args back to default values #
+    CliInputArgs.set_cli_input_args()
 
 
-def test_set_cli_args_hello(default_args: dict):
+
+def test_set_cli_args_hello():
     """test setting of CLI input args --hello
     """
-    default_args['--hello'] = True
-
     # test default value #
     assert CliInputArgs.hello == False
 
     # set args and test values afterwards #
-    CliInputArgs.set_cli_input_args(default_args)
+    CliInputArgs.set_cli_input_args(
+        verbose=False,
+        quiet=False,
+        hello=True,
+    )
     assert CliInputArgs.hello == True
 
-def test_set_cli_args_v(default_args: dict):
-    """test setting of CLI input args -v
+
+@pytest.mark.parametrize(
+    "test_case,input,get_cli_input_class_arg", [
+        ("Set verbosity to verbose",{"verbose": True, "quiet": False}, lambda: CliInputArgs.verbose),
+        ("Set verbosity to quiet",{"verbose": False, "quiet": True}, lambda: CliInputArgs.quiet),
+    ]
+)
+def test_set_cli_args_verbosity(test_case: str, input: str, get_cli_input_class_arg: Callable):
+    """test setting of CLI input args regarding verbosity (i.e. -v, -q)
+    - note, parameterized test
     """
-    default_args['-v'] = True
-
     # test default value #
-    assert CliInputArgs.verbose == False
+    assert get_cli_input_class_arg() == False
 
-    # set args and test values afterwards #
-    CliInputArgs.set_cli_input_args(default_args)
-    assert CliInputArgs.verbose == True
+    # act #
+    CliInputArgs.set_cli_input_args(
+        verbose=input["verbose"],
+        quiet=input["quiet"],
+        hello=False,
+    )
 
-def test_set_cli_args_q(default_args: dict):
-    """test setting of CLI input args -q
-    """
-    default_args['-q'] = True
-
-    # test default value #
-    assert CliInputArgs.quiet == False
-
-    # set args and test values afterwards #
-    CliInputArgs.set_cli_input_args(default_args)
-    assert CliInputArgs.quiet == True
+    # assert #
+    assert get_cli_input_class_arg() == True, \
+        f"Test Case '{test_case}' failed."
