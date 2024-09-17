@@ -1,3 +1,18 @@
+"""
+NOTE,
+- to capture output of logging, use pytest fixture caplog
+  - ...as implemented in this test script
+- to capture stdout and stderr, use pytest fixture capsys
+  - see https://docs.pytest.org/en/stable/how-to/capture-stdout-stderr.html
+  - typehint with CaptureFixture (from _pytest.capture import CaptureFixture)
+  - assert stdout, stderr using
+    ```
+    cap = capsys.readouterr()
+    assert cap.err == "your stderr text"
+    assert cap.out == "your stdout text"
+    ```
+"""
+
 import pytest
 from pytest_mock import MockerFixture
 from unittest.mock import MagicMock

@@ -1,12 +1,60 @@
-from docopt import docopt
+"""
+TODO:
+- split test_evaluate_cli_input_args into two separate tests:
+  - test_evaluate_cli_input_args_success
+  - test_evaluate_cli_input_args_fail
+- test_main
+- docstrings
+"""
+
+import pytest
+from docopt import docopt, DocoptExit
 from pytest_mock import MockerFixture
 from unittest.mock import MagicMock
 import sys
+from typing import Any
 
 import main
-from src.utils.cli_input_args import CliInputArgs
-from src.utils.intl_logger import IntlLogger
-from src.utils import exception_handling as exc
+from main import CliInputArgs
+from main import IntlLogger
+from main import exc
+
+@pytest.mark.parametrize(
+    "docopt_passes, cli_cmd, exp_res", [
+        (True, r'.\main.py', {"-v": False, "-q": False,"--hello": False,}),
+        (True, r'.\main.py -v', {"-v": True, "-q": False,"--hello": False,}),
+        (True, r'.\main.py -q', {"-v": False, "-q": True,"--hello": False,}),
+        (True, r'.\main.py --hello', {"-v": False, "-q": False,"--hello": True,}),
+        (True, r'.\main.py -v --hello', {"-v": True, "-q": False,"--hello": True,}),
+        (False, r'.\main.py --dummy-test', {}),
+        (False, r'.\main.py -v -q', {}),
+    ]
+)
+def test_evaluate_cli_input_args(
+    mocker: MockerFixture,
+    docopt_passes: bool,
+    cli_cmd: str,
+    exp_res: dict[str, Any]
+):
+
+    sys.argv = cli_cmd.split(" ")
+    mocked_set_cli_input_args: MagicMock = mocker.patch.object(
+        CliInputArgs,
+        "set_cli_input_args",
+    )
+
+    # act #
+    if docopt_passes:
+        main.evaluate_cli_input_args()
+        mocked_set_cli_input_args.assert_called_once_with(
+            verbose=exp_res["-v"],
+            quiet=exp_res["-q"],
+            hello=exp_res["--hello"],
+        )
+    else:
+        with pytest.raises(DocoptExit):
+            main.evaluate_cli_input_args()
+            mocked_set_cli_input_args.assert_not_called()
 
 
 def test_main(mocker: MockerFixture):

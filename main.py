@@ -26,6 +26,18 @@ from src.utils import exception_handling as exc
 from src.vars.pretty_print import SEPARATOR
 
 
+def evaluate_cli_input_args():
+    """evalute cli input args via docopt
+    - save input to class CliInputArgs
+    """
+    docopt_args: dict = docopt(__doc__)
+    CliInputArgs.set_cli_input_args(
+        verbose=docopt_args["-v"],
+        quiet=docopt_args["-q"],
+        hello=docopt_args["--hello"],
+    )
+
+
 def main():
     """
     - get and process CLI input args
@@ -34,12 +46,7 @@ def main():
     - on program exit, log possible exceptions
     """
     # process CLI input args #
-    docopt_args: dict = docopt(__doc__)
-    CliInputArgs.set_cli_input_args(
-        verbose=docopt_args["-v"],
-        quiet=docopt_args["-q"],
-        hello=docopt_args["--hello"],
-    )
+    evaluate_cli_input_args()
 
     # configure logging #
     root_logger = IntlLogger()
