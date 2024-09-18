@@ -1,8 +1,5 @@
 """
 TODO:
-- split test_evaluate_cli_input_args into two separate tests:
-  - test_evaluate_cli_input_args_success
-  - test_evaluate_cli_input_args_fail
 - test_main
 - docstrings
 """
@@ -20,41 +17,77 @@ from main import IntlLogger
 from main import exc
 
 @pytest.mark.parametrize(
-    "docopt_passes, cli_cmd, exp_res", [
-        (True, r'.\main.py', {"-v": False, "-q": False,"--hello": False,}),
-        (True, r'.\main.py -v', {"-v": True, "-q": False,"--hello": False,}),
-        (True, r'.\main.py -q', {"-v": False, "-q": True,"--hello": False,}),
-        (True, r'.\main.py --hello', {"-v": False, "-q": False,"--hello": True,}),
-        (True, r'.\main.py -v --hello', {"-v": True, "-q": False,"--hello": True,}),
-        (False, r'.\main.py --dummy-test', {}),
-        (False, r'.\main.py -v -q', {}),
+    "cli_cmd", [
+        (r'.\main.py --dummy-test'),
+        (r'.\main.py -v -q'),
+        (r'.\main.py -v -q --hello'),
+        (r'.\main.py -'),
     ]
 )
-def test_evaluate_cli_input_args(
+def test_evaluate_cli_input_args_fail(
     mocker: MockerFixture,
-    docopt_passes: bool,
     cli_cmd: str,
-    exp_res: dict[str, Any]
 ):
+    """test function evaluate_cli_input_args with invalid input arg options
+    - test different test cases
+    - expect DocoptExit to be thrown
 
+    Args:
+        mocker (MockerFixture): pytest mocker
+        cli_cmd (str): cli cmd to run the python file
+    """
+    # arrange #
     sys.argv = cli_cmd.split(" ")
     mocked_set_cli_input_args: MagicMock = mocker.patch.object(
         CliInputArgs,
         "set_cli_input_args",
     )
 
-    # act #
-    if docopt_passes:
+    # act and assert #
+    with pytest.raises(DocoptExit):
         main.evaluate_cli_input_args()
-        mocked_set_cli_input_args.assert_called_once_with(
-            verbose=exp_res["-v"],
-            quiet=exp_res["-q"],
-            hello=exp_res["--hello"],
-        )
-    else:
-        with pytest.raises(DocoptExit):
-            main.evaluate_cli_input_args()
-            mocked_set_cli_input_args.assert_not_called()
+        mocked_set_cli_input_args.assert_not_called()
+
+
+
+@pytest.mark.parametrize(
+    "cli_cmd, exp_res", [
+        (r'.\main.py', {"-v": False, "-q": False,"--hello": False,}),
+        (r'.\main.py -v', {"-v": True, "-q": False,"--hello": False,}),
+        (r'.\main.py -q', {"-v": False, "-q": True,"--hello": False,}),
+        (r'.\main.py --hello', {"-v": False, "-q": False,"--hello": True,}),
+        (r'.\main.py -v --hello', {"-v": True, "-q": False,"--hello": True,}),
+        (r'.\main.py -q --hello', {"-v": False, "-q": True,"--hello": True,}),
+    ]
+)
+def test_evaluate_cli_input_args_success(
+    mocker: MockerFixture,
+    cli_cmd: str,
+    exp_res: dict[str, Any],
+):
+    """test function evaluate_cli_input_args with valid input arg options
+    - test different test cases
+    - expect func set_cli_input_args to be run with resp. parameters
+
+    Args:
+        mocker (MockerFixture): pytest mocker
+        cli_cmd (str): cli cmd to run the python file
+    """
+    # arrange #
+    sys.argv = cli_cmd.split(" ")
+    mocked_set_cli_input_args: MagicMock = mocker.patch.object(
+        CliInputArgs,
+        "set_cli_input_args",
+    )
+
+    # act and assert #
+    main.evaluate_cli_input_args()
+    mocked_set_cli_input_args.assert_called_once_with(
+        verbose=exp_res["-v"],
+        quiet=exp_res["-q"],
+        hello=exp_res["--hello"],
+    )
+
 
 
 def test_main(mocker: MockerFixture):

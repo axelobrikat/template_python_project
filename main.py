@@ -3,7 +3,7 @@ Purpose:
     - Python Project Template which includes
       - project structure
       - test stucture using pytest and coverage
-      - configured logging, cli input args parsing and exception handling
+      - configured logging (logrotate), cli input args parsing and exception handling
       - .gitignore
       - LICENSE
       - README.md
@@ -15,7 +15,7 @@ Usage:
 Options:
     -v              verbose, increase verbosity to log on DEBUG level (default is WARNING)
     -q              quiet, decrease verbosity to log on ERROR level (default is WARNING)
-    --hello         [TEST CASE], log "Hello World!"
+    --hello         [TEST CASE OF THE TEMPLATE], log "Hello World!"
 """
 from docopt import docopt
 import logging
