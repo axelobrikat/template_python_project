@@ -19,7 +19,7 @@ class IntlLogger():
     rotating_file_handler: logging.handlers.RotatingFileHandler = logging.handlers.RotatingFileHandler(
             log_file_path,
             mode="a",
-            maxBytes=10*1024,
+            maxBytes=100*1024*1024,
             backupCount=5,
     )
     """RotatingFileHanlder that handles all logs to file"""
