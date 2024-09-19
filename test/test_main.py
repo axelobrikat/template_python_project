@@ -4,19 +4,56 @@ TODO:
 - docstrings
 """
 
-import logging.handlers
 import pytest
-from docopt import docopt, DocoptExit
+from docopt import DocoptExit
 from pytest_mock import MockerFixture
+from pytest import LogCaptureFixture
 from unittest.mock import MagicMock
 import sys
 from pathlib import Path
 from typing import Any
+import logging
 
 import main
 from main import CliInputArgs
 from main import IntlLogger
 from main import exc
+
+
+@pytest.fixture##debug
+def mock_IntlLogger(mocker: MockerFixture):
+    """yield class IntlLogger
+    """
+    # m = mocker.patch.object(
+    #     main,
+    #     "IntlLogger",
+    #     return_value=IntlLogger("test-logger")
+    # )
+
+    yield IntlLogger
+
+    print(str(IntlLogger.logger_names)) #debug
+    print(IntlLogger.log_file_path) #debug
+    print(IntlLogger.rotating_file_handler.baseFilename) #debug
+
+    # set back baseFilename #
+    IntlLogger.rotating_file_handler.baseFilename = str(IntlLogger.log_file_path)
+        ##TODO: why do I have to do this when handlers will be cleared?
+        ## ---> maybe try mocker.patch with side_effect callable that return IntlLogger("test-logger")
+        ##      maybe it is interferring with pytest root logger
+
+    # clear handlers from all created loggers #
+    for name in IntlLogger.logger_names:
+        print(str(logging.getLogger(name).handlers)) #debug
+        logging.getLogger(name).handlers.clear()
+        print(str(logging.getLogger(name).handlers)) #debug
+
+    # clear logger_names #
+    IntlLogger.logger_names = []
+    
+    print(str(IntlLogger.logger_names)) #debug
+    print(IntlLogger.log_file_path) #debug
+    print(IntlLogger.rotating_file_handler.baseFilename) #debug
 
 
 
@@ -93,24 +130,16 @@ def test_evaluate_cli_input_args_success(
     )
 
 
-
-def test_main(mocker: MockerFixture, tmp_path: Path):
+## TODO: fix usage of class vars and methods
+def test_main(mocker: MockerFixture, tmp_path: Path, mock_IntlLogger: IntlLogger, caplog: LogCaptureFixture):
     """test main function
 
     Args:
         mocker (MockerFixture): pytest mocker fixture
         tmp_path (Path): pytest mocker fixture for paths
+        mock_IntlLogger (IntlLogger): yield class IntlLogger
+        caplog (LogCaptureFixture): pytest fixture to capture logging
     """
-    # Arrange #
-    mock_evaluate_cli_input_args: MagicMock = mocker.patch.object(
-        main,
-        "evaluate_cli_input_args",
-    )
-    mock_IntlLogger: MagicMock = mocker.patch.object(
-        main,
-        "IntlLogger",
-    )
-
     # mock log dir path #
     tmp_log_path: Path = tmp_path / "log"
     tmp_log_path.mkdir(parents=True, exist_ok=True)
@@ -148,40 +177,45 @@ def test_main(mocker: MockerFixture, tmp_path: Path):
     assert __get_len_tmp_log_path() == 1, \
         f"Created tmp test log file. Expected to only have created one file, but got '{__get_len_tmp_log_path()}'."
     assert str(__get_elements_name(0)).endswith("test.log"), \
-        f"Created tmp test log file. Expected its name to be test.log, but got '{str(__get_elements_name(0)).endswith('test.log')}'."
+        f"Created tmp test log file. Expected its name to be test.log, but got '{str(__get_elements_name(0))}'."
     assert __get_elements_name(0).read_text() == log_msg_1, \
         f"Wrote text to tmp test log file. Expected '{log_msg_1}', but got '{__get_elements_name(0).read_text()}'."
-    mock_IntlLogger().rotating_file_handler = logging.handlers.RotatingFileHandler(
-        tmp_log_file_path
-    )
 
-    # mock_set_verbosity: MagicMock = mocker.patch.object(
-    #     IntlLogger,
-    #     "set_verbosity",
-    # )
-    # mock_add_stream_handler: MagicMock = mocker.patch.object(
-    #     IntlLogger,
-    #     "add_stream_handler",
-    # )
-    # mock_add_file_handler: MagicMock = mocker.patch.object(
-    #     IntlLogger,
-    #     "add_file_handler",
-    # )
-    # mock_program_end: MagicMock = mocker.patch.object(
-    #     exc,
-    #     "program_end",
-    # )
-    # TODO: test main for doRollover() with tmp_path from pytest
+
+    # Arrange #
+    mock_evaluate_cli_input_args: MagicMock = mocker.patch.object(
+        main,
+        "evaluate_cli_input_args",
+    )
+    mock_program_end: MagicMock = mocker.patch.object(
+        exc,
+        "program_end",
+    )
+    mock_log_exec_start_msg: MagicMock = mocker.patch.object(
+        main,
+        "log_exec_start_msg",
+    )
+    mock_IntlLogger.rotating_file_handler.baseFilename = str(tmp_log_file_path)
 
     # Act #
     main.main()
 
     # Assert #
-    mock_IntlLogger().set_verbosity.assert_called_once_with(mock_IntlLogger().logger)
-    mock_IntlLogger().add_stream_handler.assert_called_once()
-    mock_IntlLogger().add_file_handler.assert_called_once()
-    # mock_set_cli_input_args.assert_called_once_with(docopt(mocked__doc__))
-    # mock_set_verbosity.assert_called_once()
-    # mock_add_stream_handler.assert_called_once()
-    # mock_add_file_handler.assert_called_once()
-    # mock_program_end.assert_called_once()
+    mock_evaluate_cli_input_args.assert_called_once()
+    mock_log_exec_start_msg.assert_called_once()
+    mock_program_end.assert_called_once()
+    # ensure that rollover of tmp log file path was successful #
+    assert __get_len_tmp_log_path() == 2, \
+        f"Expected to have 2 log files due to logrotate, but got '{__get_len_tmp_log_path()}'."
+    assert str(__get_elements_name(0)).endswith("test.log"), \
+        f"Expected name of first log file to be test.log, but got '{str(__get_elements_name(0))}'."
+    assert str(__get_elements_name(1)).endswith("test.log.1"), \
+        f"Expected name of second log file to be test.log.1, but got '{str(__get_elements_name(1))}'."
+    assert __get_elements_name(1).read_text() == log_msg_1, (
+        f"Due to log rotation, log file content should have been rolled over."
+        f"Expected '{log_msg_1}', but got '{__get_elements_name(1).read_text()}'."
+    )
+
+def test_main_danach(): ##debug
+    IntlLogger("nice")
+    print(IntlLogger.rotating_file_handler.baseFilename)

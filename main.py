@@ -18,12 +18,11 @@ Options:
     --hello         [TEST CASE OF THE TEMPLATE], log "Hello World!"
 """
 from docopt import docopt
-import logging
 
 from src.utils.cli_input_args import CliInputArgs
 from src.utils.intl_logger import IntlLogger
 from src.utils import exception_handling as exc
-from src.vars.pretty_print import SEPARATOR
+from src.vars.pretty_print import log_exec_start_msg
 
 
 def evaluate_cli_input_args():
@@ -56,13 +55,7 @@ def main():
 
     # rotate logs from previous program execution #
     root_logger.rotating_file_handler.doRollover()
-    logging.debug((
-        f"Program execution starts.\n"
-        f"Logging and Input Arguments configured successfully.\n"
-        f"Log rotation of log files '{root_logger.log_file_path}.<x>' performed succesfully.\n"
-        f"{SEPARATOR}\n"
-        f"{SEPARATOR}\n\n"
-    ))
+    log_exec_start_msg(root_logger.log_file_path)
     
     # start program #
     from src.hello_world import hello
