@@ -1,3 +1,17 @@
+"""
+TODO:
+- impemented way of logging is too complicated
+- just follow the cook book on https://docs.python.org/3/howto/logging.html
+- use Logger class and getLogger func for different loggers
+- use --log cli option for passing loglevel
+- start every module with
+  ```
+  import logging
+  logger = logging.getLogger() # OR logging.getLogger(__name__)
+  ```
+- include the test in each module to check if the correct logger is used
+  - if this does not contradict with pytest's internal logging
+"""
 import logging
 import logging.handlers
 from pathlib import Path
