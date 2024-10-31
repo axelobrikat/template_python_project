@@ -112,6 +112,9 @@ class IntlLogger():
         Args:
             handler (logging.Handler): handler
         """
+        # Ensure the logger does not propagate messages to the root logger
+        self.logger.propagate = False
+
         # set verbosity level #
         self.set_verbosity(handler)
 
