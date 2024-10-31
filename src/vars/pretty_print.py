@@ -1,6 +1,7 @@
 from pathlib import Path
 import logging
 
+
 SEPARATOR: str = "========================================"
 """returns a line that acts as a visual separator"""
 
