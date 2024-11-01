@@ -1,5 +1,5 @@
 """
-handle logging for the program
+module to handle logging
 """
 import logging
 import logging.handlers
@@ -23,13 +23,8 @@ def _get_configured_handler(handler: logging.Handler, level: int, formatter: log
     Args:
         handler (logging.Handler): handler
     """
-    # set verbosity level #
     handler.setLevel(level)
-
-    # set format of handler #
     handler.setFormatter(formatter)
-
-    # return handler #
     return handler
 
 
