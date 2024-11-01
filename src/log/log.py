@@ -17,16 +17,19 @@ def _get_basic_format() -> str:
     return '%(asctime)s [%(levelname)-8s] %(name)s: %(message)s'
 
 
-def _get_configured_handler(handler: logging.Handler, level: int, formatter: logging.Formatter):
+def _get_configured_handler(
+    handler: logging.Handler, level: int, formatter: logging.Formatter
+) -> logging.Handler:
     """create and return a configured handler
 
     Args:
         handler (logging.Handler): handler
+        level (int): log level
+        formatter (logging.Formatter): Formatter object
     """
     handler.setLevel(level)
     handler.setFormatter(formatter)
     return handler
-
 
 
 def configure_logger(
