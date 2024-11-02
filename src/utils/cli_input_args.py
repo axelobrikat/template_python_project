@@ -1,4 +1,4 @@
-class CliInputArgs():
+class CLI():
     """class holds cli input args
     """
     verbose: bool = False

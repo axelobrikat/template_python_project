@@ -16,7 +16,7 @@ import logging
 import logging.handlers
 from pathlib import Path
 
-from src.utils.cli_input_args import CliInputArgs
+from src.utils.cli_input_args import CLI
 from src.vars.paths import ROOT
 from src.utils import exception_handling as exc
 
@@ -90,14 +90,14 @@ class IntlLogger():
         - at the moment, other loggers than "root" are not configurable
         TODO: 
           - must be more general
-          - only use CliInputArgs when "root" logger is meant
+          - only use CLI when "root" logger is meant
           - otherwise, provide func params
         """
         if self.name == "root":
-            if CliInputArgs.verbose:
+            if CLI.verbose:
                 manager.setLevel(logging.DEBUG)
                 return
-            elif CliInputArgs.quiet:
+            elif CLI.quiet:
                 manager.setLevel(logging.ERROR)
                 return
 

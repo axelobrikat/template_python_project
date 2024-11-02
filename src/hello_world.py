@@ -1,11 +1,11 @@
 import logging
 
-from src.utils.cli_input_args import CliInputArgs as Args
+from src.utils.cli_input_args import CLI
 
 def hello(): # pragma: no cover
     """log test messages
     """
-    if Args.hello:
+    if CLI.hello:
         logging.debug("Hello World!")
         logging.info("Hello World!")
         logging.warning("Hello World!")

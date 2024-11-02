@@ -19,7 +19,7 @@ Options:
 """
 from docopt import docopt
 
-from src.utils.cli_input_args import CliInputArgs
+from src.utils.cli_input_args import CLI
 from src.utils.intl_logger import IntlLogger
 from src.utils import exception_handling as exc
 from src.vars.pretty_print import log_exec_start_msg
@@ -27,10 +27,10 @@ from src.vars.pretty_print import log_exec_start_msg
 
 def evaluate_cli_input_args():
     """evalute cli input args via docopt
-    - save input to class CliInputArgs
+    - save input to class CLI
     """
     docopt_args: dict = docopt(__doc__)
-    CliInputArgs.set_cli_input_args(
+    CLI.set_cli_input_args(
         verbose=docopt_args["-v"],
         quiet=docopt_args["-q"],
         hello=docopt_args["--hello"],

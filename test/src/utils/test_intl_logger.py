@@ -19,7 +19,7 @@ from unittest.mock import MagicMock
 
 from src.utils.intl_logger import logging
 from src.utils.intl_logger import IntlLogger
-from src.utils.cli_input_args import CliInputArgs
+from src.utils.cli_input_args import CLI
 
 
 @pytest.fixture
@@ -39,7 +39,7 @@ def tearDown():
     """yield test and tearDown
     - clear handlers from all created loggers
     - clear list of IntlLogger instances to prevent exception to be thrown
-    - reset CliInputArgs to defaults
+    - reset CLI to defaults
     """
     yield
 
@@ -50,8 +50,8 @@ def tearDown():
     # clear logger_names #
     IntlLogger.logger_names = []
 
-    # reset CliInputArgs to defaults #
-    CliInputArgs.set_cli_input_args()
+    # reset CLI to defaults #
+    CLI.set_cli_input_args()
 
 
 @pytest.fixture
@@ -163,9 +163,9 @@ def test_set_verbosity_root(test_case: str, verbosity: str, log_level: int):
     """
     # Arrange
     if verbosity=="verbose":
-        CliInputArgs.verbose = True
+        CLI.verbose = True
     elif verbosity=="quiet":
-        CliInputArgs.quiet = True
+        CLI.quiet = True
     elif verbosity=="default":
         pass # auto-tearDown sets class args back to default vals
     else:

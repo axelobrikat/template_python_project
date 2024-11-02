@@ -15,7 +15,7 @@ from typing import Any
 import logging
 
 import main
-from main import CliInputArgs
+from main import CLI
 from main import IntlLogger
 from main import exc
 
@@ -80,7 +80,7 @@ def test_evaluate_cli_input_args_fail(
     # arrange #
     sys.argv = cli_cmd.split(" ")
     mocked_set_cli_input_args: MagicMock = mocker.patch.object(
-        CliInputArgs,
+        CLI,
         "set_cli_input_args",
     )
 
@@ -117,7 +117,7 @@ def test_evaluate_cli_input_args_success(
     # arrange #
     sys.argv = cli_cmd.split(" ")
     mocked_set_cli_input_args: MagicMock = mocker.patch.object(
-        CliInputArgs,
+        CLI,
         "set_cli_input_args",
     )
 
