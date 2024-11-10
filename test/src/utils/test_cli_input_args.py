@@ -38,23 +38,23 @@ def test_set_cli_args_hello():
     [
         (
             "Test case 1: Set verbosity to verbose",
-            {"v": True, "vv": False, "q": False, "qq": False},
+            {"v": True, "V": False, "q": False, "Q": False},
             lambda: CLI.v,
         ),
         (
             "Test case 2: Set verbosity to more verbose",
-            {"v": False, "vv": True, "q": False, "qq": False},
-            lambda: CLI.vv,
+            {"v": False, "V": True, "q": False, "Q": False},
+            lambda: CLI.V,
         ),
         (
             "Test case 3: Set verbosity to quiet",
-            {"v": False, "vv": False, "q": True, "qq": False},
+            {"v": False, "V": False, "q": True, "Q": False},
             lambda: CLI.q,
         ),
         (
             "Test case 4: Set verbosity to more quiet",
-            {"v": False, "vv": False, "q": False, "qq": True},
-            lambda: CLI.qq,
+            {"v": False, "V": False, "q": False, "Q": True},
+            lambda: CLI.Q,
         ),
     ],
 )
@@ -68,9 +68,9 @@ def test_set_cli_args_verbosity(test_case: str, input: str, get_cli_input_class_
     # act #
     CLI.set_cli_input_args(
         v=input["v"],
-        vv=input["vv"],
+        V=input["V"],
         q=input["q"],
-        qq=input["qq"],
+        Q=input["Q"],
         hello=False,
     )
 

@@ -10,13 +10,13 @@ Purpose:
       - requirements.txt
 
 Usage:
-    main.py [ -vv | -v | -q | -qq ] [--hello]
+    main.py [ -V | -v | -q | -Q ] [--hello]
 
 Options:
     -v              verbose, increase verbosity to log on INFO level (default is WARNING)
-    -vv             more verbose, increase verbosity to log on DEBUG level (default is WARNING)
+    -V              more verbose, increase verbosity to log on DEBUG level (default is WARNING)
     -q              quiet, decrease verbosity to log on ERROR level (default is WARNING)
-    -qq             more quiet, decrease verbosity to log on EXCEPTION level (default is WARNING)
+    -Q              more quiet, decrease verbosity to log on EXCEPTION level (default is WARNING)
     --hello         [TEST CASE OF THE TEMPLATE], log "Hello World!"
 """
 from docopt import docopt
@@ -34,9 +34,9 @@ def evaluate_cli_input_args():
     docopt_args: dict = docopt(__doc__)
     CLI.set_cli_input_args(
         v=docopt_args["-v"],
-        vv=docopt_args["-vv"],
+        V=docopt_args["-V"],
         q=docopt_args["-q"],
-        qq=docopt_args["-qq"],
+        Q=docopt_args["-Q"],
         hello=docopt_args["--hello"],
     )
 
