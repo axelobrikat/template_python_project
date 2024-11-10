@@ -2,9 +2,10 @@ import pytest
 from pytest_mock import MockerFixture
 from unittest.mock import MagicMock
 from pathlib import Path
+import shutil
 
 from src.log.log import logging
-from src.log.log import configure_logger, _get_basic_format, ROOT
+from src.log import log
 
 
 @pytest.fixture
@@ -67,13 +68,176 @@ def mock_stream_handler(mocker: MockerFixture) -> MagicMock:
     )
 
 
+@pytest.mark.parametrize(
+    "test_case, log_level_str, expected_log_level",
+    [
+        ("test case 1:", "CRITICAL", logging.CRITICAL),
+        ("test case 2:", "FATAL", logging.FATAL),
+        ("test case 3:", "ERROR", logging.ERROR),
+        ("test case 4:", "WARNING", logging.WARNING),
+        ("test case 5:", "WARN", logging.WARN),
+        ("test case 6:", "INFO", logging.INFO),
+        ("test case 7:", "DEBUG", logging.DEBUG),
+        ("test case 8:", "NOTSET", logging.NOTSET),
+    ]
+)
+def test_get_log_level_success(
+    tmp_path: Path, test_case: str, log_level_str: str, expected_log_level: int
+) -> None:
+    """
+    Test get_log_level function for expected log level values when valid log levels are provided.
+
+    Args:
+        tmp_path (Path): Temporary directory provided by pytest to create a mock log.conf file.
+        test_case (str): test case name of the parametrized test func
+        log_level_str (str): Log level name to write to the mock log.conf file (e.g., "WARNING").
+        expected_log_level (int): Expected integer value for the log level based on Python's logging library.
+  """
+
+    # Create a temporary log.conf file with the log_level we want to test
+    log_conf_path = tmp_path / "log.conf"
+    log_conf_path.write_text(f"log_level: {log_level_str}")
+
+    # Run the function and check that it returns the expected log level
+    log_level = log.get_log_level(log_conf_path)
+    assert log_level == expected_log_level, \
+        f"{test_case}, failed. Expected {expected_log_level}, but got {log_level}"
+    
+
+
+def test_get_log_level_FileNotFoundError(tmp_path: Path):
+    """test get_log_level function for FileNotFoundError
+
+    Args:
+        tmp_path (Path): Temporary directory provided by pytest to create a mock log.conf file.
+    """
+    not_existing_path: Path = tmp_path / "not" / "existing" / "path"
+    exp_exc_msg: str = fr"File '{not_existing_path}' does not exist."
+    
+    with pytest.raises(FileNotFoundError, match=exp_exc_msg):
+        log.get_log_level(not_existing_path)
+
+
+
+@pytest.mark.parametrize(
+    "file_content, exp_err_msg",
+    [
+        ("log_level: INVALID_LEVEL", "Cannot configure logging. Invalid log level: 'INVALID_LEVEL'."),  # Case 1
+        ("some_other_config: INFO", "Cannot configure logging. Log level cannot be determined from log.conf file.")  # Case 2
+    ]
+)
+def test_get_log_level_ValueError(tmp_path: Path, file_content: str, exp_err_msg: str) -> None:
+    """Test get_log_level function raises ValueError for invalid or missing log levels.
+
+    Args:
+        tmp_path (Path): Temporary directory provided by pytest to create a mock log.conf file.
+        file_content (str): Content to write in the mock log.conf file for testing error conditions.
+        exp_err_msg (str): Expected error message substring for ValueError.
+    """
+    # Create a temporary log.conf file with the specified content
+    log_conf_path = tmp_path / "log.conf"
+    log_conf_path.write_text(file_content)
+
+    # Check that ValueError is raised with the expected error message
+    with pytest.raises(ValueError, match=exp_err_msg):
+        log.get_log_level(log_conf_path)
+
+
+
+@pytest.mark.parametrize(
+    "test_case, log_level_str, expected_log_level",
+    [
+        ("test case 1:", "CRITICAL", logging.CRITICAL),
+        ("test case 3:", "ERROR", logging.ERROR),
+        ("test case 4:", "WARNING", logging.WARNING),
+        ("test case 6:", "INFO", logging.INFO),
+        ("test case 7:", "DEBUG", logging.DEBUG),
+        ("test case 8:", "NOTSET", logging.NOTSET),
+    ]
+)
+def test_write_log_level_success(
+    tmp_path: Path, mocker: MockerFixture, test_case: str, log_level_str: str, expected_log_level: int
+) -> None:
+    """
+    Test write_log_level function for expected log level values when valid log levels are provided.
+
+    Args:
+        tmp_path (Path): Temporary directory provided by pytest to create a mock log.conf file.
+        mocker (MockerFixture): pytest MockerFixture
+        test_case (str): Test case name of the parametrized test function.
+        log_level_str (str): Log level name to write to the mock log.conf file (e.g., "WARNING").
+        expected_log_level (int): Expected integer value for the log level based on Python's logging library.
+    """
+    # Create a temporary log.conf file with the same content as project's log.conf file #
+    log_conf_path = tmp_path / "src" / "log" / "log.conf"
+    log_conf_path.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy(Path(log.ROOT / "src" / "log" / "log.conf"), log_conf_path)
+
+    # patch ROOT var #
+    mocker.patch.object(
+        log,
+        "ROOT",
+        tmp_path
+    )
+
+    # Run the function to update the log level
+    log.write_log_level(expected_log_level)
+
+    # Check if the file content has the expected log level
+    updated_content = log_conf_path.read_text()
+    assert f"log_level: {log_level_str}" in updated_content, \
+        f"{test_case} failed. Expected 'log_level: {log_level_str}', but got {updated_content}"
+
+
+
+def test_write_log_level_ValueError(tmp_path: Path, mocker: MockerFixture) -> None:
+    """Test write_log_level function raises ValueError for invalid log level.
+
+    Args:
+        tmp_path (Path): Temporary directory provided by pytest to create a mock log.conf file.
+        mocker (MockerFixture): pytest MockerFixture
+    """
+    invalid_log_level = 999
+    exp_exc_msg = "Cannot configure logging. Invalid log level: 999 of type"
+    mocker.patch.object(
+        log,
+        "ROOT",
+        tmp_path
+    )
+    
+    with pytest.raises(ValueError, match=exp_exc_msg):
+        log.write_log_level(invalid_log_level)
+
+
+
+def test_write_log_level_FileNotFoundError(tmp_path: Path, mocker: MockerFixture) -> None:
+    """Test write_log_level function raises FileNotFoundError when log.conf is missing.
+
+    Args:
+        tmp_path (Path): Temporary directory provided by pytest to create a mock log.conf file.
+        mocker (MockerFixture): pytest MockerFixture
+    """
+    not_existing_path = tmp_path / "nonexistent"
+    mocker.patch.object(
+        log,
+        "ROOT",
+        not_existing_path
+    )
+    not_existing_log_conf_path: Path = not_existing_path / "src" / "log" / "log.conf"
+    exp_exc_msg = f"File '{not_existing_log_conf_path}' does not exist."
+    
+    with pytest.raises(FileNotFoundError, match=exp_exc_msg):
+        log.write_log_level(logging.NOTSET)
+
+
+
 def test_configure_logger_defaults(logger: logging.Logger):
     """test configure_logger func when default parameters are used
 
     Args:
         logger (logging.Logger): Logger object
     """
-    logger = configure_logger(logger=logger)
+    logger = log.configure_logger(logger=logger)
 
     # assert logger properties #
     assert logger == logging.root.manager.loggerDict["test-logger"]
@@ -88,7 +252,7 @@ def test_configure_logger_defaults(logger: logging.Logger):
     for handler in logger.handlers:
         if type(handler) == logging.StreamHandler:
             assert handler.level == logging.WARNING
-            assert handler.formatter._fmt == _get_basic_format()
+            assert handler.formatter._fmt == log._get_basic_format()
 
     # assert RotatingFileHandler properties #
     has_RotatingFileHandler: bool = any(
@@ -99,8 +263,9 @@ def test_configure_logger_defaults(logger: logging.Logger):
     for handler in logger.handlers:
         if type(handler) == logging.handlers.RotatingFileHandler:
             assert handler.level == logging.WARNING
-            assert handler.formatter._fmt == _get_basic_format()
-            assert handler.baseFilename == str(ROOT / "log" / "app.log")
+            assert handler.formatter._fmt == log._get_basic_format()
+            assert handler.baseFilename == str(log.ROOT / "log" / "app.log")
+
 
 
 @pytest.mark.parametrize(
@@ -181,7 +346,7 @@ def test_configure_logger_non_defaults(
     fh_file_path = tmp_path / log_filename
 
     # Configure logger with non-default parameters
-    logger = configure_logger(
+    logger = log.configure_logger(
         logger=logger,
         ch_level=ch_level,
         ch_formatter=ch_formatter,
