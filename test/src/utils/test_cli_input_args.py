@@ -18,7 +18,6 @@ def tearDown():
     CLI.set_cli_input_args()
 
 
-
 def test_set_cli_args_hello():
     """test setting of CLI input args --hello
     """
@@ -27,33 +26,54 @@ def test_set_cli_args_hello():
 
     # set args and test values afterwards #
     CLI.set_cli_input_args(
-        verbose=False,
-        quiet=False,
+        v=False,
+        q=False,
         hello=True,
     )
     assert CLI.hello == True
 
 
 @pytest.mark.parametrize(
-    "test_case,input,get_cli_input_class_arg", [
-        ("Set verbosity to verbose",{"verbose": True, "quiet": False}, lambda: CLI.verbose),
-        ("Set verbosity to quiet",{"verbose": False, "quiet": True}, lambda: CLI.quiet),
-    ]
+    "test_case,input,get_cli_input_class_arg",
+    [
+        (
+            "Test case 1: Set verbosity to verbose",
+            {"v": True, "vv": False, "q": False, "qq": False},
+            lambda: CLI.v,
+        ),
+        (
+            "Test case 2: Set verbosity to more verbose",
+            {"v": False, "vv": True, "q": False, "qq": False},
+            lambda: CLI.vv,
+        ),
+        (
+            "Test case 3: Set verbosity to quiet",
+            {"v": False, "vv": False, "q": True, "qq": False},
+            lambda: CLI.q,
+        ),
+        (
+            "Test case 4: Set verbosity to more quiet",
+            {"v": False, "vv": False, "q": False, "qq": True},
+            lambda: CLI.qq,
+        ),
+    ],
 )
 def test_set_cli_args_verbosity(test_case: str, input: str, get_cli_input_class_arg: Callable):
     """test setting of CLI input args regarding verbosity (i.e. -v, -q)
     - note, parameterized test
     """
-    # test default value #
+    # test default value (tearDown must work properly) #
     assert get_cli_input_class_arg() == False
 
     # act #
     CLI.set_cli_input_args(
-        verbose=input["verbose"],
-        quiet=input["quiet"],
+        v=input["v"],
+        vv=input["vv"],
+        q=input["q"],
+        qq=input["qq"],
         hello=False,
     )
 
     # assert #
     assert get_cli_input_class_arg() == True, \
-        f"Test Case '{test_case}' failed."
+        f"'{test_case}' failed."
