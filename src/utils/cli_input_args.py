@@ -1,3 +1,6 @@
+import logging
+
+
 class CLI():
     """class holds cli input args
     """
@@ -30,3 +33,20 @@ class CLI():
         cls.q = q
         cls.Q = Q
         cls.hello = hello
+
+    @classmethod
+    def get_wanted_log_level(cls) -> int:
+        """return log level based on CLI input
+
+        Returns:
+            int: log level
+        """
+        if cls.V:
+            return logging.DEBUG
+        elif cls.v:
+            return logging.INFO
+        elif cls.q:
+            return logging.ERROR
+        elif cls.Q:
+            return logging.CRITICAL
+        return logging.WARNING

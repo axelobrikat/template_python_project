@@ -1,3 +1,4 @@
+import logging
 import pytest
 from collections.abc import Callable
 
@@ -77,3 +78,9 @@ def test_set_cli_args_verbosity(test_case: str, input: str, get_cli_input_class_
     # assert #
     assert get_cli_input_class_arg() == True, \
         f"'{test_case}' failed."
+    
+def test_get_wanted_log_level():
+    CLI.V = True
+
+    assert CLI.get_wanted_log_level() == logging.DEBUG
+    assert False # not finished this yet
