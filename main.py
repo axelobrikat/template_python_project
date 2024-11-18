@@ -20,9 +20,12 @@ Options:
     --hello         [TEST CASE OF THE TEMPLATE], log "Hello World!"
 """
 from docopt import docopt
+import logging
+import logging.handlers
 
 from src.utils.cli_input_args import CLI
-from src.utils.intl_logger import IntlLogger
+# from src.utils.intl_logger import IntlLogger
+from src.log import log
 from src.utils import exception_handling as exc
 from src.vars.pretty_print import log_exec_start_msg
 
@@ -51,17 +54,32 @@ def main():
     # process CLI input args #
     evaluate_cli_input_args()
 
-    # configure logging #
-    root_logger = IntlLogger()
-    root_logger.set_verbosity(root_logger.logger)
-    root_logger.add_stream_handler()
-    root_logger.add_file_handler()
+    # write log level to log.conf file #
+    log.write_log_level(CLI.get_wanted_log_level())
+
+    # configure logger #
+    logger: logging.Logger = logging.getLogger(__name__)
+    logger = log.configure_logger(logger)
 
     # rotate logs from previous program execution #
-    root_logger.rotating_file_handler.doRollover()
-    log_exec_start_msg(root_logger.log_file_path)
+    for h in logger.handlers:
+        if type(h) == logging.handlers.RotatingFileHandler:
+            h.doRollover()
+
+    #########################
+    # root_logger = IntlLogger()
+    # root_logger.set_verbosity(root_logger.logger)
+    # root_logger.add_stream_handler()
+    # root_logger.add_file_handler()
+
+    # # rotate logs from previous program execution #
+    # root_logger.rotating_file_handler.doRollover()
+    # log_exec_start_msg(root_logger.log_file_path)
+    #########################
     
     # start program #
+    log_exec_start_msg()
+    #TODO: this should be directly logged here with the resp. logger
     from src.hello_world import hello
     hello()
 
