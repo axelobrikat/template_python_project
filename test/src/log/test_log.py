@@ -82,8 +82,8 @@ def mock_stream_handler(mocker: MockerFixture) -> MagicMock:
     ]
 )
 def test_get_log_level_success(
-    tmp_path: Path, test_case: str, log_level_str: str, expected_log_level: int
-) -> None:
+        tmp_path: Path, test_case: str, log_level_str: str, expected_log_level: int
+    ) -> None:
     """
     Test get_log_level function for expected log level values when valid log levels are provided.
 
@@ -156,8 +156,12 @@ def test_get_log_level_ValueError(tmp_path: Path, file_content: str, exp_err_msg
     ]
 )
 def test_write_log_level_success(
-    tmp_path: Path, mocker: MockerFixture, test_case: str, log_level_str: str, expected_log_level: int
-) -> None:
+        tmp_path: Path,
+        mocker: MockerFixture,
+        test_case: str,
+        log_level_str: str,
+        expected_log_level: int,
+    ) -> None:
     """
     Test write_log_level function for expected log level values when valid log levels are provided.
 
@@ -231,8 +235,64 @@ def test_write_log_level_FileNotFoundError(tmp_path: Path, mocker: MockerFixture
 
 
 
+def test_rotate_logs_of_all_rotating_file_handlers(
+        logger: logging.Logger,
+        tmp_path: Path,
+        mocker: MockerFixture,
+    ):
+    """test function rotate_logs_of_all_rotating_file_handlers
+    - check that only RotatingFileHanlders do the rollover
+
+    Args:
+        logger (logging.Logger): Logger object
+        tmp_path (Path): pytest tmp path fixture
+        mocker (MockerFixture): pytest mocker fixture
+    """
+    mock_doRollover: MagicMock = mocker.patch.object(
+        logging.handlers.RotatingFileHandler,
+        "doRollover",
+    )
+    tmp_log_file: Path = tmp_path / "test.log"
+    tmp_log_file.touch()
+
+    inital_num_handlers: int = len(logger.handlers)
+
+    # add RotatingFileHandlers #
+    num_rfh: int = 3
+    for _ in range(num_rfh):
+        logger.addHandler(
+            logging.handlers.RotatingFileHandler(tmp_log_file)
+        )
+
+    # add FileHandlers #
+    num_fh: int = 4
+    for _ in range(num_fh):
+        logger.addHandler(
+            logging.FileHandler(tmp_log_file)
+        )
+
+    # add StreamHandlers #
+    num_sh: int = 2
+    for _ in range(num_sh):
+        logger.addHandler(
+            logging.StreamHandler()
+        )
+
+    num_added_handlers: int = num_rfh + num_fh + num_sh
+
+    # act #
+    log.rotate_logs_of_all_rotating_file_handlers(logger)
+
+    # assert #
+    ## ensure that loggers got added correctly #
+    assert len(logger.handlers) == inital_num_handlers + num_added_handlers
+    ## assert number of calls for mocked function doRollover ##
+    assert mock_doRollover.call_count == num_rfh
+
+
 def test_configure_logger_defaults(logger: logging.Logger):
     """test configure_logger func when default parameters are used
+    - this includes ./log/log.conf to be configured with `log_level: WARNING`
 
     Args:
         logger (logging.Logger): Logger object
@@ -314,16 +374,16 @@ def test_configure_logger_defaults(logger: logging.Logger):
     ],
 )
 def test_configure_logger_non_defaults(
-    logger: logging.Logger,
-    tmp_path: Path,
-    test_case: str,
-    ch_level: int,
-    fh_level: int,
-    ch_format: str,
-    fh_format: str,
-    log_filename: str,
-    propagate: bool
-):
+        logger: logging.Logger,
+        tmp_path: Path,
+        test_case: str,
+        ch_level: int,
+        fh_level: int,
+        ch_format: str,
+        fh_format: str,
+        log_filename: str,
+        propagate: bool
+    ):
     """
     Test configure_logger function with non-default parameters and a parameterized log file name.
 

@@ -24,10 +24,9 @@ import logging
 import logging.handlers
 
 from src.utils.cli_input_args import CLI
-# from src.utils.intl_logger import IntlLogger
 from src.log import log
 from src.utils import exception_handling as exc
-from src.vars.pretty_print import log_exec_start_msg
+from src.vars.pretty_print import SEPARATOR
 
 
 def evaluate_cli_input_args():
@@ -60,26 +59,17 @@ def main():
     # configure logger #
     logger: logging.Logger = logging.getLogger(__name__)
     logger = log.configure_logger(logger)
+    log.rotate_logs_of_all_rotating_file_handlers(logger)
 
-    # rotate logs from previous program execution #
-    for h in logger.handlers:
-        if type(h) == logging.handlers.RotatingFileHandler:
-            h.doRollover()
+    # log debug msg for program start #
+    logger.debug((
+        f"Program execution starts.\n"
+        f"Logging and Input Arguments configured successfully.\n"
+        f"{SEPARATOR}\n"
+        f"{SEPARATOR}\n\n"
+    ))
 
-    #########################
-    # root_logger = IntlLogger()
-    # root_logger.set_verbosity(root_logger.logger)
-    # root_logger.add_stream_handler()
-    # root_logger.add_file_handler()
-
-    # # rotate logs from previous program execution #
-    # root_logger.rotating_file_handler.doRollover()
-    # log_exec_start_msg(root_logger.log_file_path)
-    #########################
-    
     # start program #
-    log_exec_start_msg()
-    #TODO: this should be directly logged here with the resp. logger
     from src.hello_world import hello
     hello()
 

@@ -99,6 +99,18 @@ def write_log_level(log_level: int) -> None:
     log_conf_path.write_text(updated_content)
 
 
+def rotate_logs_of_all_rotating_file_handlers(logger: logging.Logger) -> None:
+    """
+    rotate log files of all RotatingFileHandlers of passed logger instance
+
+    Args:
+        logger (logging.Logger): logger instance
+    """
+    for h in logger.handlers:
+        if type(h) == logging.handlers.RotatingFileHandler:
+            h.doRollover()
+
+
 def _get_basic_format() -> str:
     """return basic logging format of program
 
