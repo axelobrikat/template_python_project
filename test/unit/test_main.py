@@ -1,3 +1,6 @@
+"""
+unit testing of main.py
+"""
 import pytest
 from docopt import DocoptExit
 from pytest_mock import MockerFixture
