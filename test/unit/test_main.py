@@ -193,6 +193,7 @@ def test_evaluate_cli_input_args_success(
 )
 def test_main(
         caplog: LogCaptureFixture,
+        mocker: MockerFixture,
         mock_evaluate_cli_input_args: MagicMock,
         mock_write_log_level: MagicMock,
         mock_get_wanted_log_level: MagicMock,
@@ -207,10 +208,10 @@ def test_main(
       - ...does logger creation work
       - ...does logging work
       - ...are function calls correct
-      TODO: fix this test
 
     Args:
         caplog (LogCaptureFixture): pytest log fixture
+        mocker (MockerFixture): pytest mocker
         mock_evaluate_cli_input_args (MagicMock): mocked function evaluate_cli_input_args
         mock_write_log_level (MagicMock): mocked function write_log_level
         mock_get_wanted_log_level (MagicMock): mocked function get_wanted_log_level
@@ -219,9 +220,27 @@ def test_main(
         mock_program_end (MagicMock): mocked function program_end
         test_case (str): test case name
         log_level (int): Logging level to test
-    """    
-    caplog.set_level(log_level)
+    """
+    # arrange #
+    def __mock_configure_logger(logger: logging.Logger) -> logging.Logger:
+        """mock func configure_logger
 
+        Args:
+            logger (logging.Logger): logger object to be mocked
+
+        Returns:
+            logging.Logger: mocked logger object
+        """
+        logger.setLevel(log_level)
+        return logger
+
+    mocker.patch.object(
+        log,
+        "configure_logger",
+        side_effect=lambda logger: __mock_configure_logger(logger)
+    )
+
+    # act #
     main.main()
 
     # assert that logger got created #
