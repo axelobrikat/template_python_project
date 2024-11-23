@@ -100,7 +100,7 @@ def test__evaluate_cli_input_args_fail(
     # act and assert #
     with pytest.raises(DocoptExit):
         main._evaluate_cli_input_args()
-        mocked_set_cli_input_args.assert_not_called()
+    mocked_set_cli_input_args.assert_not_called()
 
 
 
