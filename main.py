@@ -23,10 +23,24 @@ from docopt import docopt
 import logging
 import logging.handlers
 
+logging.basicConfig(level=logging.NOTSET) # pragma: no cover
+"""
+This sets the root logger to write to stdout (your console).
+Your script/app needs to call this somewhere at least once.
+By default the root logger is set to WARNING and all loggers you define
+inherit that value. Here we set the root logger to NOTSET. This logging
+level is automatically inherited by all existing and new sub-loggers
+that do not set a less verbose level.
+"""
+
+# only import module that do not include logging, #
+# as logging has not been configured yet #
 from src.utils.cli_input_args import CLI
 from src.log import log
-from src.utils import exception_handling as exc
 from src.vars.pretty_print import SEPARATOR
+
+### TODO: instead break off main() and put the setup CLI and log stuff
+###       ...in front of the imports that happen in main()
 
 
 def evaluate_cli_input_args():
@@ -55,7 +69,7 @@ def main():
 
     # write log level to log.conf file #
     log.write_log_level(CLI.get_wanted_log_level())
-
+    
     # configure logger #
     logger: logging.Logger = logging.getLogger(__name__)
     logger = log.configure_logger(logger)
@@ -74,6 +88,7 @@ def main():
     hello()
 
     # on exit, log catched exceptions as roundup #
+    from src.utils import exception_handling as exc
     exc.program_end()
 
 

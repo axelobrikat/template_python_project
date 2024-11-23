@@ -44,29 +44,6 @@ def tearDown():
     _remove_loggers(test_logger_names)
 
 
-@pytest.fixture
-def mock_stream_handler(mocker: MockerFixture) -> MagicMock:
-    """mocks logging.StreamHandler to return a Callable
-    - Callable returns instance of logging.StreamHandler with default verbosity WARNING
-      - this ensures that the same object can be compared for test assertion
-
-    Args:
-        mocker (MockerFixture): pytest MockerFixture
-
-    Returns:
-        MagicMock: mocked StreamHandler class
-    """
-    dummy_handler = logging.StreamHandler(logging.WARNING)
-
-    def __callable__():
-        return dummy_handler
-
-    return mocker.patch.object(
-        logging,
-        "StreamHandler",
-        new_callable=lambda: __callable__
-    )
-
 
 @pytest.mark.parametrize(
     "test_case, log_level_str, expected_log_level",
@@ -81,11 +58,11 @@ def mock_stream_handler(mocker: MockerFixture) -> MagicMock:
         ("test case 8:", "NOTSET", logging.NOTSET),
     ]
 )
-def test_get_log_level_success(
+def test__get_log_level_success(
         tmp_path: Path, test_case: str, log_level_str: str, expected_log_level: int
     ) -> None:
     """
-    Test get_log_level function for expected log level values when valid log levels are provided.
+    Test _get_log_level function for expected log level values when valid log levels are provided.
 
     Args:
         tmp_path (Path): Temporary directory provided by pytest to create a mock log.conf file.
@@ -99,14 +76,14 @@ def test_get_log_level_success(
     log_conf_path.write_text(f"log_level: {log_level_str}")
 
     # Run the function and check that it returns the expected log level
-    log_level = log.get_log_level(log_conf_path)
+    log_level = log._get_log_level(log_conf_path)
     assert log_level == expected_log_level, \
         f"{test_case}, failed. Expected {expected_log_level}, but got {log_level}"
     
 
 
-def test_get_log_level_FileNotFoundError(tmp_path: Path):
-    """test get_log_level function for FileNotFoundError
+def test__get_log_level_FileNotFoundError(tmp_path: Path):
+    """test _get_log_level function for FileNotFoundError
 
     Args:
         tmp_path (Path): Temporary directory provided by pytest to create a mock log.conf file.
@@ -115,7 +92,7 @@ def test_get_log_level_FileNotFoundError(tmp_path: Path):
     exp_exc_msg: str = fr"File '{not_existing_path}' does not exist."
     
     with pytest.raises(FileNotFoundError, match=exp_exc_msg):
-        log.get_log_level(not_existing_path)
+        log._get_log_level(not_existing_path)
 
 
 
@@ -126,8 +103,8 @@ def test_get_log_level_FileNotFoundError(tmp_path: Path):
         ("some_other_config: INFO", "Cannot configure logging. Log level cannot be determined from log.conf file.")  # Case 2
     ]
 )
-def test_get_log_level_ValueError(tmp_path: Path, file_content: str, exp_err_msg: str) -> None:
-    """Test get_log_level function raises ValueError for invalid or missing log levels.
+def test__get_log_level_ValueError(tmp_path: Path, file_content: str, exp_err_msg: str) -> None:
+    """Test _get_log_level function raises ValueError for invalid or missing log levels.
 
     Args:
         tmp_path (Path): Temporary directory provided by pytest to create a mock log.conf file.
@@ -140,7 +117,7 @@ def test_get_log_level_ValueError(tmp_path: Path, file_content: str, exp_err_msg
 
     # Check that ValueError is raised with the expected error message
     with pytest.raises(ValueError, match=exp_err_msg):
-        log.get_log_level(log_conf_path)
+        log._get_log_level(log_conf_path)
 
 
 

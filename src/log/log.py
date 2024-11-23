@@ -26,7 +26,7 @@ def _check_path_existence(path: Path):
         raise FileNotFoundError(f"File '{path}' does not exist.")
 
 
-def get_log_level(log_conf_path: Path = ROOT / "src" / "log" / "log.conf") -> int:
+def _get_log_level(log_conf_path: Path = ROOT / "src" / "log" / "log.conf") -> int:
     """return log level that is stored in file
     - pattern: "^log_level:\s*(\w+)$", e.g. "log_level: WARNING"
 
@@ -89,14 +89,20 @@ def write_log_level(log_level: int) -> None:
     _check_path_existence(log_conf_path)
 
     # Read, modify, and overwrite the file content
-    content = log_conf_path.read_text()
-    updated_content = re.sub(
-        r"^log_level:\s*\w+",
-        f"log_level: {log_level_name}",
-        content,
-        flags=re.MULTILINE,
-    )
-    log_conf_path.write_text(updated_content)
+    with open(log_conf_path, mode='r+') as f:
+        # read content #
+        content = f.read()
+        # set pointer to file start #
+        f.seek(0)
+        # substitute log level #
+        f.write(re.sub(
+            r"^log_level:\s*\w+",
+            f"log_level: {log_level_name}",
+            content,
+            flags=re.MULTILINE,
+        ))
+        # truncate at the end #
+        f.truncate()
 
 
 def rotate_logs_of_all_rotating_file_handlers(logger: logging.Logger) -> None:
@@ -121,8 +127,8 @@ def _get_basic_format() -> str:
 
 
 def _get_configured_handler(
-    handler: logging.Handler, level: int, formatter: logging.Formatter
-) -> logging.Handler:
+        handler: logging.Handler, level: int, formatter: logging.Formatter
+    ) -> logging.Handler:
     """create and return a configured handler
 
     Args:
@@ -136,28 +142,38 @@ def _get_configured_handler(
 
 
 def configure_logger(
-    logger: logging.Logger,
-    ch_level: int = get_log_level(),
-    ch_formatter: logging.Formatter = logging.Formatter(_get_basic_format()),
-    fh_level: int = get_log_level(),
-    fh_formatter: logging.Formatter = logging.Formatter(_get_basic_format()),
-    fh_file_path: Path = ROOT / "log" / "app.log",
-    propagate: bool = False,
-) -> logging.Logger:
+        logger: logging.Logger,
+        ch_level: int = -1,
+        ch_formatter: logging.Formatter = logging.Formatter(_get_basic_format()),
+        fh_level: int = -1,
+        fh_formatter: logging.Formatter = logging.Formatter(_get_basic_format()),
+        fh_file_path: Path = ROOT / "log" / "app.log",
+        propagate: bool = False,
+    ) -> logging.Logger:
     """configure logger object
 
     Args:
         logger (logging.Logger): logger
-        ch_level (int): log level for console handler (ch)
-        ch_formatter (logging.Formatter): formatter for console handler (ch)
-        fh_level (int): log level for file handler (fh)
-        fh_formatter (logging.Formatter): formatter for file handler (fh)
-        fh_file_path (Path): path to log file
-        propagate (bool): decides if logs should be propoagated to root logger
+        ch_level (int): log level for console handler (ch). Defaults to -1
+            ...indicating that default value from log.conf should be used.
+        ch_formatter (logging.Formatter): formatter for console handler (ch). Defaults to 
+            ...logging.Formaterr using interal default format
+        fh_level (int): log level for file handler (fh). Defaults to -1
+            ...indicating that default value from log.conf should be used.
+        fh_formatter (logging.Formatter): formatter for file handler (fh). Defaults to 
+            ...logging.Formaterr using interal default format
+        fh_file_path (Path): path to log file. Defaults to project's log.conf file path.
+        propagate (bool): decides if logs should be propoagated to root logger. Defaults to False.
 
     Returns:
         logging.Logger: configured logger object
     """
+    # Check if default log level should be used #
+    if ch_level == -1:
+        ch_level = _get_log_level()
+    if fh_level == -1:
+        fh_level = _get_log_level()
+
     # Ensure the logger does not propagate messages to the root logger
     logger.propagate = propagate
 
