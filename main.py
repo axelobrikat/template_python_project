@@ -80,6 +80,7 @@ def main():
     - on program exit, log possible exceptions
     """
     # rotate logs #
+    # TODO: fix: logs are not saved in app.log but already in app.log.1 #
     log.rotate_logs_of_all_rotating_file_handlers(logger)
 
     # log debug msg for program start #
