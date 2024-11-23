@@ -6,10 +6,11 @@ TODO:
 import sys
 import logging
 
+
+from src.log.log import configure_logger
 from src.vars.pretty_print import SEPARATOR
 
 logger = logging.getLogger(__name__)
-from src.log.log import configure_logger
 logger = configure_logger(logger)
 
 

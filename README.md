@@ -12,4 +12,4 @@ A template which can be used for new Python projects which includes:
 
 ## Project Info
 - based on Python, version 3.10.11
-- run project via command line using `python` command
+- run project via command line using `python`/`python3` command
