@@ -13,17 +13,14 @@ import logging
 import main
 from main import exc, log, CLI, SEPARATOR
 
-from src import hello_world
-
 
 TEST_LOGGER_NAME: str = "test-logger"
 
 
 @pytest.fixture(autouse=True)
-def patch___name__(mocker: MockerFixture):
+def setUp_tearDown(mocker: MockerFixture):
     """setUp and tearDown
-    - patch the __name__ dunder var of main.py,
-      ...so the logger name in main.py gets changed for testing
+    - patch the logger object
     - yield the test
     - delete logger objects that have been created during testing
 
@@ -32,44 +29,13 @@ def patch___name__(mocker: MockerFixture):
     """
     mocker.patch.object(
         main,
-        "__name__",
-        TEST_LOGGER_NAME
+        "logger",
+        logging.getLogger(TEST_LOGGER_NAME)
     )
 
     yield
 
-    if TEST_LOGGER_NAME in logging.root.manager.loggerDict:
-        del logging.root.manager.loggerDict[TEST_LOGGER_NAME]
-
-
-@pytest.fixture
-def mock_evaluate_cli_input_args(mocker: MockerFixture) -> MagicMock:
-    """return function evaluate_cli_input_args
-    """
-    return mocker.patch.object(
-        main,
-        "evaluate_cli_input_args",
-    )
-
-
-@pytest.fixture
-def mock_write_log_level(mocker: MockerFixture) -> MagicMock:
-    """return function write_log_level
-    """
-    return mocker.patch.object(
-        log,
-        "write_log_level",
-    )
-
-
-@pytest.fixture
-def mock_get_wanted_log_level(mocker: MockerFixture) -> MagicMock:
-    """return function get_wanted_log_level
-    """
-    return mocker.patch.object(
-        CLI,
-        "get_wanted_log_level",
-    )
+    del logging.root.manager.loggerDict[TEST_LOGGER_NAME]
 
 
 @pytest.fixture
@@ -87,7 +53,7 @@ def mock_hello(mocker: MockerFixture) -> MagicMock:
     """return function hello
     """
     return mocker.patch.object(
-        hello_world,
+        main,
         "hello",
     )
 
@@ -112,11 +78,11 @@ def mock_program_end(mocker: MockerFixture) -> MagicMock:
         (r'.\main.py -'),
     ]
 )
-def test_evaluate_cli_input_args_fail(
+def test__evaluate_cli_input_args_fail(
     mocker: MockerFixture,
     cli_cmd: str,
 ):
-    """test function evaluate_cli_input_args with invalid input arg options
+    """test function _evaluate_cli_input_args with invalid input arg options
     - test different test cases
     - expect DocoptExit to be thrown
 
@@ -133,7 +99,7 @@ def test_evaluate_cli_input_args_fail(
 
     # act and assert #
     with pytest.raises(DocoptExit):
-        main.evaluate_cli_input_args()
+        main._evaluate_cli_input_args()
         mocked_set_cli_input_args.assert_not_called()
 
 
@@ -150,12 +116,12 @@ def test_evaluate_cli_input_args_fail(
         (r'.\main.py -q --hello', {"v": False, "V": False, "q": True, "Q": False, "hello": True}),
     ]
 )
-def test_evaluate_cli_input_args_success(
+def test__evaluate_cli_input_args_success(
     mocker: MockerFixture,
     cli_cmd: str,
     exp_res: dict[str, Any],
 ):
-    """test function evaluate_cli_input_args with valid input arg options
+    """test function _evaluate_cli_input_args with valid input arg options
     - test different test cases
     - expect func set_cli_input_args to be run with resp. parameters
 
@@ -172,7 +138,7 @@ def test_evaluate_cli_input_args_success(
     )
 
     # act and assert #
-    main.evaluate_cli_input_args()
+    main._evaluate_cli_input_args()
     mocked_set_cli_input_args.assert_called_once_with(
         v=exp_res["v"],
         V=exp_res["V"],
@@ -193,10 +159,6 @@ def test_evaluate_cli_input_args_success(
 )
 def test_main(
         caplog: LogCaptureFixture,
-        mocker: MockerFixture,
-        mock_evaluate_cli_input_args: MagicMock,
-        mock_write_log_level: MagicMock,
-        mock_get_wanted_log_level: MagicMock,
         mock_rotate_logs_of_all_rotating_file_handlers: MagicMock,
         mock_hello: MagicMock,
         mock_program_end: MagicMock,
@@ -211,10 +173,6 @@ def test_main(
 
     Args:
         caplog (LogCaptureFixture): pytest log fixture
-        mocker (MockerFixture): pytest mocker
-        mock_evaluate_cli_input_args (MagicMock): mocked function evaluate_cli_input_args
-        mock_write_log_level (MagicMock): mocked function write_log_level
-        mock_get_wanted_log_level (MagicMock): mocked function get_wanted_log_level
         mock_rotate_logs_of_all_rotating_file_handlers (MagicMock): mocked function rotate_logs_of_all_rotating_file_handlers
         mock_hello (MagicMock): mocked function hello
         mock_program_end (MagicMock): mocked function program_end
@@ -222,23 +180,7 @@ def test_main(
         log_level (int): Logging level to test
     """
     # arrange #
-    def __mock_configure_logger(logger: logging.Logger) -> logging.Logger:
-        """mock func configure_logger
-
-        Args:
-            logger (logging.Logger): logger object to be mocked
-
-        Returns:
-            logging.Logger: mocked logger object
-        """
-        logger.setLevel(log_level)
-        return logger
-
-    mocker.patch.object(
-        log,
-        "configure_logger",
-        side_effect=lambda logger: __mock_configure_logger(logger)
-    )
+    caplog.set_level(log_level)
 
     # act #
     main.main()
@@ -259,11 +201,7 @@ def test_main(
         assert "" == caplog.text, \
             f"test case '{test_case}' failed."
 
-
     # assert that mocked functions are called #
-    mock_evaluate_cli_input_args.assert_called_once()
-    mock_write_log_level.assert_called_once()
-    mock_get_wanted_log_level.assert_called_once()
     mock_rotate_logs_of_all_rotating_file_handlers.assert_called_once()
     mock_hello.assert_called_once()
     mock_program_end.assert_called_once()

@@ -3,6 +3,8 @@ module to handle logging
 - this is also used for configuring the main logger of the app
   - therefore, this module cannot log 'normally', but must raise issues instantly
   - TODO: rework this structure - app should not break if any logger cannot find log.conf etc.
+    - logging should be usable, but not custom logger
+    - NOTE, this module should not include custom logging (for info, see main.py).
 """
 import logging
 import logging.handlers

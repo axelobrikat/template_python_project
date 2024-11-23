@@ -1,3 +1,7 @@
+"""
+Module to provide global variables.
+NOTE, this module should not include custom logging (for info, see main.py).
+"""
 from pathlib import Path
 import os
 import sys

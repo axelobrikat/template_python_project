@@ -23,7 +23,7 @@ from docopt import docopt
 import logging
 import logging.handlers
 
-logging.basicConfig(level=logging.NOTSET) # pragma: no cover
+logging.basicConfig(level=logging.NOTSET)
 """
 This sets the root logger to write to stdout (your console).
 Your script/app needs to call this somewhere at least once.
@@ -33,17 +33,13 @@ level is automatically inherited by all existing and new sub-loggers
 that do not set a less verbose level.
 """
 
-# only import module that do not include logging, #
-# as logging has not been configured yet #
+# only import modules that do not include custom logging, #
+# as custom logging has not been configured yet #
 from src.utils.cli_input_args import CLI
 from src.log import log
-from src.vars.pretty_print import SEPARATOR
-
-### TODO: instead break off main() and put the setup CLI and log stuff
-###       ...in front of the imports that happen in main()
 
 
-def evaluate_cli_input_args():
+def _evaluate_cli_input_args():
     """evalute cli input args via docopt
     - save input to class CLI
     """
@@ -57,22 +53,33 @@ def evaluate_cli_input_args():
     )
 
 
-def main():
-    """
-    - get and process CLI input args
-    - configure logging
-    - start program
-    - on program exit, log possible exceptions
+if __name__=="__main__":
+    """setup program
     """
     # process CLI input args #
-    evaluate_cli_input_args()
+    _evaluate_cli_input_args()
 
     # write log level to log.conf file #
     log.write_log_level(CLI.get_wanted_log_level())
-    
-    # configure logger #
-    logger: logging.Logger = logging.getLogger(__name__)
-    logger = log.configure_logger(logger)
+
+
+# configure logger #
+logger: logging.Logger = logging.getLogger(__name__)
+logger = log.configure_logger(logger)
+
+
+from src.vars.pretty_print import SEPARATOR
+from src.utils import exception_handling as exc
+from src.hello_world import hello
+
+
+def main():
+    """
+    - rotate logs
+    - start program
+    - on program exit, log possible exceptions
+    """
+    # rotate logs #
     log.rotate_logs_of_all_rotating_file_handlers(logger)
 
     # log debug msg for program start #
@@ -84,13 +91,13 @@ def main():
     ))
 
     # start program #
-    from src.hello_world import hello
     hello()
 
     # on exit, log catched exceptions as roundup #
-    from src.utils import exception_handling as exc
     exc.program_end()
 
 
 if __name__=="__main__":
+    """call main
+    """
     main() # pragma: no cover

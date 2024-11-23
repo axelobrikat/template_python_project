@@ -1,3 +1,7 @@
+"""
+Module to persist and handle CLI input args.
+NOTE, this module should not include custom logging (for info, see main.py).
+"""
 import logging
 
 
