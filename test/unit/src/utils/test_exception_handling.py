@@ -1,3 +1,7 @@
+"""
+TODO: improve testing
+"""
+
 import pytest
 from pytest_mock import MockerFixture
 from pytest import LogCaptureFixture
@@ -45,12 +49,6 @@ def test_log_exc(caplog: LogCaptureFixture):
     assert f"{exc_msg}" in caplog.text
     assert f"{err_msg}" in caplog.text
 
-def test_process_exc():
-    exc_msg = "Test Exception"
-    with pytest.raises(Exception, match=fr"{exc_msg}"):
-        exc.raise_exception(exc_msg)
-    assert len(exc.EXC) == 1
-
 def test_program_end_without_exceptions(caplog: LogCaptureFixture):
     caplog.set_level(logging.WARNING)
     exc.program_end()
@@ -66,3 +64,4 @@ def test_program_end_with_exception(caplog: pytest.LogCaptureFixture):
     assert "Program ends.." in caplog.text
     assert "Roundup of catched exceptions" in caplog.text
     assert f"{exc_msg}" in caplog.text
+    assert exc.EXC == [[exc_msg, exc_info]]

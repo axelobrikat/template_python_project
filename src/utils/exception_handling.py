@@ -24,13 +24,19 @@ def clear_catched_exceptions():
     global EXC
     EXC = []
 
-def log_exc(exc_msg: str, exc_info):
+def log_exc(exc_msg: str, exc_info, store_exc_info: bool = True):
     """log exception using logging.exception
+    - save exception info if wanted
 
     Args:
         exc_msg (str): exception message
         exc_info (_OptExcInfo): exception info
+        store_exc_info (bool): indicates whether to store exc info or not.
+            ... Defaults to True.
     """
+    if store_exc_info:
+        global EXC
+        EXC.append([exc_msg, exc_info])
     logger.exception(
         f"\n"
         f"{SEPARATOR}\n"
@@ -41,34 +47,6 @@ def log_exc(exc_msg: str, exc_info):
         exc_info=exc_info
     )
 
-def process_exc(exc_msg: str="EXCEPTION occured"):
-    """get exc info, append to global var EXC and log exc
-
-    Args:
-        exc_msg (str, optional): exception message. Defaults to "EXCEPTION occured".
-    """
-    global EXC
-    exc_info = sys.exc_info()
-    EXC.append([exc_msg, exc_info])
-    log_exc(exc_msg, exc_info)
-
-def raise_exception(exc_msg: str):
-    """raise exception to exit the program immediately
-    - works within try-except to be able of logging the raised Exception
-    - depending on usage, second raise can also get catched by outer try-except
-
-    Args:
-        exc_msg (str): exception message
-
-    Raises:
-        Exception: raise Exception, log error that occured and exit program
-    """
-    try:
-        raise Exception(exc_msg)
-    except Exception:
-        process_exc(f"EXCEPTION raised: {exc_msg}")
-        raise # for process termination, raise last exception again without catching
-    
 def program_end():
     """when program exits, output all catched exceptions as roundup
     """        
@@ -80,5 +58,4 @@ def program_end():
     if EXC:
         logger.warning(f"Roundup of catched exceptions (ordered by time):\n")
         for exc in EXC:
-            log_exc(exc[0], exc[1])
-            # logging.exception(f"\n\n-----> {exc[0]} <-----", exc_info=exc[1])
+            log_exc(exc[0], exc[1], store_exc_info=False)
