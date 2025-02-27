@@ -29,7 +29,7 @@ def _check_path_existence(path: Path):
 
 
 def _get_log_level(log_conf_path: Path = ROOT / "src" / "log" / "log.conf") -> int:
-    """return log level that is stored in file
+    r"""return log level that is stored in file
     - pattern: "^log_level:\s*(\w+)$", e.g. "log_level: WARNING"
 
     Args:
@@ -72,6 +72,12 @@ def _get_log_level(log_conf_path: Path = ROOT / "src" / "log" / "log.conf") -> i
 def write_log_level(log_level: int) -> None:
     """Update the log level in log.conf to the provided log level.
     - do this by overwriting the whole file with the updated content
+    - TODO:
+      - log.conf should not be overwritten
+      - instead check if cli logging option is passed
+        - if yes, then create a tmp log.conf file in tmp folder
+        - if not, then use the default log.conf file
+      - in both cases, log if the log level was taken from log.conf or cli
 
     Args:
         log_level (int): New log level as an integer (e.g., logging.WARNING, logging.INFO).
@@ -110,12 +116,14 @@ def write_log_level(log_level: int) -> None:
 def rotate_logs_of_all_rotating_file_handlers(logger: logging.Logger) -> None:
     """
     rotate log files of all RotatingFileHandlers of passed logger instance
+    - only if the file is not empty
 
     Args:
         logger (logging.Logger): logger instance
     """
     for h in logger.handlers:
-        if type(h) == logging.handlers.RotatingFileHandler:
+        if type(h) == logging.handlers.RotatingFileHandler \
+        and Path(h.baseFilename).stat().st_size != 0:
             h.doRollover()
 
 

@@ -55,17 +55,16 @@ def _evaluate_cli_input_args():
 
 if __name__=="__main__":
     """setup program
+    - we need this __name__=="__main__" here because of testing
+    - TODO: find a better way to test this
     """
-    # process CLI input args #
     _evaluate_cli_input_args()
-
-    # write log level to log.conf file #
     log.write_log_level(CLI.get_wanted_log_level())
-
 
 # configure logger #
 logger: logging.Logger = logging.getLogger(__name__)
 logger = log.configure_logger(logger)
+log.rotate_logs_of_all_rotating_file_handlers(logger)
 
 
 from src.vars.pretty_print import SEPARATOR
@@ -74,27 +73,15 @@ from src.hello_world import hello
 
 
 def main():
+    """start program and log possible exceptions on exit
     """
-    - rotate logs
-    - start program
-    - on program exit, log possible exceptions
-    """
-    # rotate logs #
-    # TODO: fix: logs are not saved in app.log but already in app.log.1 #
-    log.rotate_logs_of_all_rotating_file_handlers(logger)
-
-    # log debug msg for program start #
     logger.debug((
         f"Program execution starts.\n"
         f"Logging and Input Arguments configured successfully.\n"
         f"{SEPARATOR}\n"
         f"{SEPARATOR}\n\n"
     ))
-
-    # start program #
     hello()
-
-    # on exit, log catched exceptions as roundup #
     exc.program_end()
 
 

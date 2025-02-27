@@ -37,10 +37,23 @@ def setUp_tearDown(mocker: MockerFixture):
 
     del logging.root.manager.loggerDict[TEST_LOGGER_NAME]
 
+## TODO: to prevent actual log file creation ##
+## This func does not work ##
+@pytest.fixture(autouse=True)
+def mock_configure_logger(mocker: MockerFixture) -> MagicMock:
+    """return function configure_logger
+    - to prevent actual log file creation
+    """
+    return mocker.patch.object(
+        log,
+        "configure_logger",
+    )
 
-@pytest.fixture
+
+@pytest.fixture(autouse=True)
 def mock_rotate_logs_of_all_rotating_file_handlers(mocker: MockerFixture) -> MagicMock:
     """return function rotate_logs_of_all_rotating_file_handlers
+    - to prevent actual log rotation
     """
     return mocker.patch.object(
         log,
@@ -159,7 +172,6 @@ def test__evaluate_cli_input_args_success(
 )
 def test_main(
         caplog: LogCaptureFixture,
-        mock_rotate_logs_of_all_rotating_file_handlers: MagicMock,
         mock_hello: MagicMock,
         mock_program_end: MagicMock,
         test_case: str,
@@ -173,7 +185,6 @@ def test_main(
 
     Args:
         caplog (LogCaptureFixture): pytest log fixture
-        mock_rotate_logs_of_all_rotating_file_handlers (MagicMock): mocked function rotate_logs_of_all_rotating_file_handlers
         mock_hello (MagicMock): mocked function hello
         mock_program_end (MagicMock): mocked function program_end
         test_case (str): test case name
@@ -202,6 +213,5 @@ def test_main(
             f"test case '{test_case}' failed."
 
     # assert that mocked functions are called #
-    mock_rotate_logs_of_all_rotating_file_handlers.assert_called_once()
     mock_hello.assert_called_once()
     mock_program_end.assert_called_once()

@@ -231,10 +231,12 @@ def test_rotate_logs_of_all_rotating_file_handlers(
     )
     tmp_log_file: Path = tmp_path / "test.log"
     tmp_log_file.touch()
+    tmp_log_file.write_text("This file is not empty.")
 
     inital_num_handlers: int = len(logger.handlers)
 
     # add RotatingFileHandlers #
+    # to keep the test small, all RotatingFileHandlers get the same log file #
     num_rfh: int = 3
     for _ in range(num_rfh):
         logger.addHandler(
